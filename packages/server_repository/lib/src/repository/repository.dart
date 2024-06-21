@@ -11,3 +11,4 @@ export 'qrlocationadd_api/QRLocationAdd_Api.dart';
 export 'createlocation_api/createlocation_api_repo.dart';
 export 'qrcustomeradd_api/QRCustomerAdd_Api.dart';
 export 'attachment_api/attachment_api.dart';
+export 'process_api/process_api_repository.dart';

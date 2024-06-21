@@ -8,12 +8,13 @@ import 'package:next_era_collector/custlist/bloc/custlist_states.dart';
 import 'package:next_era_collector/custlist/custrepo/CustListRepo.dart';
 import 'package:next_era_collector/custlist/widget/addHouseOwner.dart';
 import 'package:next_era_collector/home/view/home_screen.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:server_repository/api_response.dart';
 import 'package:server_repository/models.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
 import '../../addcustomer/view/addcustomer_screen.dart';
 import '../../addpayment/view/addpayment_screen.dart';
+import '../../res/utils/OpenQRScanner.dart';
+import '../../res/widgets/MsgDialog.dart';
+import '../../res/widgets/QRError.dart';
 
 class CustListPage extends StatefulWidget {
   final String title;
@@ -284,9 +285,16 @@ class CustomerListing extends StatelessWidget {
                   left: 20, right: 20, top: 10, bottom: 3),
               child: ListTile(
                   onTap: () {
-                    context
-                        .read<CustListBloc>()
-                        .add(OpenPaymentEvent(cBpartner: customer));
+                    if(custlistBloc.isOnlyDataCollector){
+                      showDialog<void>(
+                        context: context,
+                        builder: (_) =>  MsgDialog(msg: "Data Collector No Access"),
+                      );
+                    }else{
+                      context
+                          .read<CustListBloc>()
+                          .add(OpenPaymentEvent(cBpartner: customer));
+                    }
                   },
                   title: Text(
                     customer.name ?? "No name",
@@ -309,96 +317,5 @@ class CustomerListing extends StatelessWidget {
     ;
   }
 }
-Future<String?> openQRScanner() async {
-  var cameraStatus = await Permission.camera.status;
-  if (cameraStatus.isGranted) {
-    String? qr = await scanner.scan();
-    return qr;
-  } else {
-    var isGrant = await Permission.camera.request();
-    if (isGrant.isGranted) {
-      String? qr = await scanner.scan();
-      return qr;
-    }
-  }
-}
 
-class QRErrorDialog extends StatelessWidget {
-  const QRErrorDialog({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const Row(
-              children: <Widget>[
-                Icon(Icons.info),
-                Flexible(
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
-                      'Scanned QR Not Valid !',
-                      softWrap: true,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class MsgDialog extends StatelessWidget {
-  String msg;
-
-  MsgDialog({required this.msg});
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Icon(Icons.info),
-                Flexible(
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
-                      msg,
-                      softWrap: true,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

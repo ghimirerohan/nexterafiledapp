@@ -6,16 +6,16 @@ class LocalStorage {
   final storage =  const FlutterSecureStorage();
 
   Future<bool> setValue(String keys, String values)async{
-    storage.write( key: keys , value:values);
+    await storage.write( key: keys , value:values);
     return true ;
   }
 
   Future<dynamic> readValue(String keys)async{
-    return storage.read( key: keys , ) ;
+    return await storage.read( key: keys , ) ;
   }
 
   Future<bool> clearValue(String key)async{
-    storage.delete(key: key);
+    await storage.delete(key: key);
     return true;
   }
 

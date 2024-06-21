@@ -8,11 +8,14 @@ import 'package:next_era_collector/home/bloc/home_bloc/home_bloc.dart';
 import 'package:next_era_collector/home/bloc/home_bloc/home_events.dart';
 import 'package:next_era_collector/home/bloc/home_bloc/home_states.dart';
 import 'package:next_era_collector/login/view/login_page.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:next_era_collector/res/widgets/OverlayLoading.dart';
+
 
 import '../../../authentication/bloc/auth_bloc.dart';
 import '../../addpayment/view/addpayment_screen.dart';
+import '../../res/utils/OpenQRScanner.dart';
+import '../../res/widgets/MsgDialog.dart';
+import '../../res/widgets/QRError.dart';
 
 class HomePage extends StatefulWidget {
   final String? prevGPCode;
@@ -69,32 +72,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   _popBackExitCallBack() {
-    showDialog(
-      context: context,
-      builder: (BuildContext ctx) {
-        return AlertDialog(
-          title: const Text("Exit"),
-          content: const Text(
-            "Sure To Exit The App ?",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Yes"),
-              onPressed: () {
-                SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-              },
-            ),
-            TextButton(
-              child: const Text("No"),
-              onPressed: () {
-                Navigator.of(ctx).pop();
-              },
-            )
-          ],
-        );
-      },
-    );
+    // showDialog(
+    //   context: context,
+    //   builder: (BuildContext ctx) {
+    //     return AlertDialog(
+    //       title: const Text("Exit"),
+    //       content: const Text(
+    //         "Sure To Exit The App ?",
+    //         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    //       ),
+    //       actions: [
+    //         TextButton(
+    //           child: const Text("Yes"),
+    //           onPressed: () {
+    //             SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+    //           },
+    //         ),
+    //         TextButton(
+    //           child: const Text("No"),
+    //           onPressed: () {
+    //             Navigator.of(ctx).pop();
+    //           },
+    //         )
+    //       ],
+    //     );
+    //   },
+    // );
   }
 
   @override
@@ -103,10 +106,14 @@ class _HomePageState extends State<HomePage> {
     final homeBloc = context.read<HomeBloc>();
     return BlocListener<HomeBloc, HomeState>(
       listener: (BuildContext context, HomeState state) async {
-        if(state.isLoading){
+        if (state.isLoading) {
           showDialog<void>(
               context: context,
-              builder: (_) => const Center(child: CircularProgressIndicator()));
+              builder: (_) => const Overlayloading());
+        }else{
+          if(Navigator.of(context).canPop()){
+            Navigator.of(context).pop();
+          }
         }
         if (state.isQRValid) {
           if (state.isDirectPayment) {
@@ -120,8 +127,8 @@ class _HomePageState extends State<HomePage> {
                   .push(AddPaymentScreen.route(cBpartner: state.custModel!));
             }
           } else {
-            Navigator.of(context)
-                .push(CustListScreen.route(state.qrData.replaceAll("%2B", "+")));
+            Navigator.of(context).push(
+                CustListScreen.route(state.qrData.replaceAll("%2B", "+")));
           }
         }
         if (state.logOutRequested) {
@@ -137,8 +144,6 @@ class _HomePageState extends State<HomePage> {
           Navigator.of(context).push(AddLocationScreen.route(
               ne_qrlocationadd_id: int.parse(state.locationAddMsg)));
         }
-
-
       },
       child: PopScope(
         canPop: false,
@@ -285,7 +290,7 @@ Container getPersonContainer(BuildContext ctx) {
           builder: (_) => const QRErrorDialog(),
         );
       } else {
-        String dataFinal = data.substring(data.lastIndexOf('/') + 1);
+        String dataFinal = data.substring(data.lastIndexOf('=') + 1);
         ctx.read<HomeBloc>().add(LocationAddQRScannedEvent(id: dataFinal));
       }
     }
@@ -438,198 +443,124 @@ Container getPaymentContainer(BuildContext ctx) => Container(
       ),
     );
 
-Card topArea(String name, BuildContext ctx) => Card(
-      margin: const EdgeInsets.all(9.0),
-      elevation: 11.0,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12.0))),
-      child: Container(
-          decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(12.0)),
-              gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [Color(0xFF047857), Color(0xff0e7490)])),
-          padding: const EdgeInsets.all(5.0),
-          // color: Color(0xFF015FFF),
-          child: Column(
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  BlocBuilder<HomeBloc, HomeState>(
-                      builder: (BuildContext context, HomeState state) {
-                    return IconButton(
-                      icon: const Icon(
-                        Icons.refresh,
-                        color: Colors.white,
-                        size: 33,
-                      ),
-                      onPressed: () {
-                        context
-                            .read<HomeBloc>()
-                            .add(FetchTotalCollectionAmount());
-                      },
-                    );
-                  }),
-                  Text(name,
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 20.0)),
-                  IconButton(
+Card topArea(String name, BuildContext ctx) {
+  final homeBloc = ctx.read<HomeBloc>();
+  return Card(
+    margin: const EdgeInsets.all(9.0),
+    elevation: 11.0,
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12.0))),
+    child: Container(
+        decoration: const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(12.0)),
+            gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Color(0xFF047857), Color(0xff0e7490)])),
+        padding: const EdgeInsets.all(5.0),
+        // color: Color(0xFF015FFF),
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                BlocBuilder<HomeBloc, HomeState>(
+                    builder: (BuildContext context, HomeState state) {
+                  return IconButton(
                     icon: const Icon(
-                      Icons.close,
+                      Icons.refresh,
                       color: Colors.white,
                       size: 33,
                     ),
-                    onPressed: () async {
-                      showDialog(
-                        context: ctx,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text("Logout"),
-                            content: const Text("Would you like to Logout?"),
-                            actions: [
-                              TextButton(
-                                child: const Text("Yes"),
-                                onPressed: () {
-                                  ctx.read<HomeBloc>().add(LogOutEvent());
-                                },
-                              ),
-                              TextButton(
-                                child: const Text("No"),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
+                    onPressed: () {
+                      context
+                          .read<HomeBloc>()
+                          .add(FetchTotalCollectionAmount());
                     },
-                  )
-                ],
-              ),
-              const Center(
+                  );
+                }),
+                Text(name,
+                    style:
+                        const TextStyle(color: Colors.white, fontSize: 20.0)),
+                IconButton(
+                  icon: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 33,
+                  ),
+                  onPressed: () async {
+                    showDialog(
+                      context: ctx,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Logout"),
+                          content: const Text("Would you like to Logout?"),
+                          actions: [
+                            TextButton(
+                              child: const Text("Yes"),
+                              onPressed: () {
+                                ctx.read<HomeBloc>().add(LogOutEvent());
+                              },
+                            ),
+                            TextButton(
+                              child: const Text("No"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                )
+              ],
+            ),
+            BlocBuilder<HomeBloc, HomeState>(
+                builder: (BuildContext context, HomeState state) {
+              return Center(
                 child: Padding(
                   padding: EdgeInsets.all(5.0),
-                  child: Text("Today\'s Collection - आज जम्मा",
-                      style: TextStyle(color: Colors.white, fontSize: 24.0)),
-                ),
-              ),
-              BlocBuilder<HomeBloc, HomeState>(
-                  builder: (BuildContext context, HomeState state) {
-                if (state.isTotalAmountLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: Text("Rs. ${state.totalCollected}",
+                  child: state.isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      : Text(
+                          state.isDatacollector
+                              ? "TODAY  |  TOTAL"
+                              : "Today\'s Collection - आज जम्मा",
                           style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.w800)),
-                    ),
-                  );
-                }
-              }),
-              const SizedBox(height: 27.0),
-            ],
-          )),
-    );
-
-class QRErrorDialog extends StatelessWidget {
-  const QRErrorDialog({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const Row(
-              children: <Widget>[
-                Icon(Icons.info),
-                Flexible(
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
-                      'Scanned QR Not Valid !',
-                      softWrap: true,
-                    ),
-                  ),
+                              color: Colors.white, fontSize: 24.0)),
                 ),
-              ],
-            ),
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class MsgDialog extends StatelessWidget {
-  String msg;
-
-  MsgDialog({required this.msg});
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Icon(Icons.info),
-                Flexible(
+              );
+            }),
+            BlocBuilder<HomeBloc, HomeState>(
+                builder: (BuildContext context, HomeState state) {
+              if (state.isTotalAmountLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                return Center(
                   child: Padding(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(5.0),
                     child: Text(
-                      msg,
-                      softWrap: true,
-                    ),
+                        state.isDatacollector
+                            ? state.todayTotalCustCreatedString
+                            : "Rs. ${state.totalCollected}",
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.w800)),
                   ),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+                );
+              }
+            }),
+            const SizedBox(height: 27.0),
           ],
-        ),
-      ),
-    );
-  }
+        )),
+  );
 }
 
-Future<String?> openQRScanner() async {
-  var cameraStatus = await Permission.camera.status;
-  if (cameraStatus.isGranted) {
-    String? qr = await scanner.scan();
-    return qr;
-  } else {
-    var isGrant = await Permission.camera.request();
-    if (isGrant.isGranted) {
-      String? qr = await scanner.scan();
-      return qr;
-    }
-  }
-}
+
+

@@ -14,8 +14,10 @@ class HomeState extends Equatable {
     this.custModel,
     this.newLocationAddInProgressOrTaken = false,
     this.locationAddMsg = "",
+    this.todayTotalCustCreatedString = "",
     this.isAddLocationOkay = false,
-    this.isLoading = false
+    this.isLoading = false,
+    this.isDatacollector = false
   });
 
   final int selection;
@@ -24,12 +26,14 @@ class HomeState extends Equatable {
   final bool logOutRequested;
   final bool isTotalAmountLoading;
   final bool isDirectPayment;
-  final int totalCollected;
+  final double totalCollected;
   final CBpartner? custModel;
   final bool newLocationAddInProgressOrTaken;
   final String locationAddMsg;
   final bool isAddLocationOkay;
   final bool isLoading;
+  final String todayTotalCustCreatedString;
+  final bool isDatacollector;
 
   HomeState copyWith({
     int? selection,
@@ -38,12 +42,14 @@ class HomeState extends Equatable {
     bool? logOutRequested,
     bool? isTotalAmountLoading,
     bool? isDirectPayment,
-    int? totalCollected,
+    double? totalCollected,
     CBpartner? custModel,
     bool? newLocationAddInProgressOrTaken,
     String? locationAddMsg,
     bool? isAddLocationOkay,
-    bool? isLoading
+    bool? isLoading,
+    bool? isDatacollector,
+    String? todayTotalCustCreatedString
   }) {
     return HomeState(
         selection: selection ?? this.selection,
@@ -58,7 +64,9 @@ class HomeState extends Equatable {
             this.newLocationAddInProgressOrTaken,
         locationAddMsg: locationAddMsg ?? this.locationAddMsg,
         isAddLocationOkay: isAddLocationOkay ?? this.isAddLocationOkay,
-        isLoading : isLoading ?? this.isLoading
+        isLoading : isLoading ?? this.isLoading,
+      isDatacollector:  isDatacollector ?? this.isDatacollector,
+        todayTotalCustCreatedString : todayTotalCustCreatedString ?? this.todayTotalCustCreatedString
     );
   }
 
@@ -78,7 +86,9 @@ class HomeState extends Equatable {
         custModel,
         newLocationAddInProgressOrTaken,
         locationAddMsg,
-        isAddLocationOkay
+        isAddLocationOkay,
+        isDatacollector,
+        todayTotalCustCreatedString
       ];
 
 }

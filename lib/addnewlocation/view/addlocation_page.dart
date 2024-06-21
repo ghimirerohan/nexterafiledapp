@@ -9,9 +9,11 @@ import 'package:next_era_collector/home/view/home_screen.dart';
 import 'package:next_era_collector/res/widgets/InputField.dart';
 import 'package:next_era_collector/app.dart';
 import 'package:next_era_collector/custlist/view/custlist_screen.dart';
+import 'package:next_era_collector/res/widgets/MsgDialog.dart';
 import 'package:server_repository/api_response.dart';
 import 'package:server_repository/models.dart';
 
+import '../../res/widgets/OverlayLoading.dart';
 import '../bloc/addlocation_bloc.dart';
 import '../bloc/addlocation_state.dart';
 
@@ -73,9 +75,9 @@ class _AddLocationPageState extends State<AddLocationPage> {
               },
             ),
             centerTitle: true,
-            title: const Text(
-              "New Location",
-              style: TextStyle(color: Colors.white),
+            title:  Text(
+              "New Location ${widget.ne_qrlocationadd_id}",
+              style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: const Color(0xFF047857),
           ),
@@ -136,6 +138,15 @@ class _AddLocationBodyState extends State<AddLocationBody> {
     final addCustBloc = context.read<AddLocationBloc>();
     return BlocListener<AddLocationBloc, AddLocationState>(
       listener: (context, state) {
+        if (state.isPostLoading) {
+          showDialog<void>(
+              context: context,
+              builder: (_) => const Overlayloading());
+        }else{
+          if(Navigator.of(context).canPop()){
+            Navigator.of(context).pop();
+          }
+        }
         if (state.isPosted) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
@@ -146,6 +157,10 @@ class _AddLocationBodyState extends State<AddLocationBody> {
               ),
             );
           Navigator.of(context).push(HomeScreen.route());
+          showDialog<void>(
+              context: context,
+              builder: (_) =>  MsgDialog(msg: "Location Add Success"));
+          
         }
       },
       child: Form(
@@ -271,59 +286,52 @@ class _AddLocationBodyState extends State<AddLocationBody> {
                   ),
 
                   const SizedBox(height: 27),
-                  BlocBuilder<AddLocationBloc, AddLocationState>(
-                      builder: (context, state) {
-                        if (state.isPostLoading) {
-                          return const CircularProgressIndicator();
-                        } else {
-                          return SizedBox(
-                            height: 45,
-                            width: 222,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
-                                    const Color(0xFF047857)),
-                              ),
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext ctx) {
-                                      return AlertDialog(
-                                        title:
-                                        const Text("Post New Location ?"),
-                                        content: Text("Ward : ${state.selectedWard}\n"
-                                            "Tole : ${_tole.text}\n"),
-                                        actions: [
-                                          TextButton(
-                                            child: const Text("Yes"),
-                                            onPressed: () {
-                                              finalDialogYesCallBack(ctx);
-                                            },
-                                          ),
-                                          TextButton(
-                                            child: const Text("No"),
-                                            onPressed: () {
-                                              Navigator.of(ctx).pop();
-                                            },
-                                          )
-                                        ],
-                                      );
+                  SizedBox(
+                    height: 45,
+                    width: 222,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                            const Color(0xFF047857)),
+                      ),
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext ctx) {
+                              return AlertDialog(
+                                title:
+                                const Text("Post New Location ?"),
+                                content: Text("Ward : ${addCustBloc.state.selectedWard}\n"
+                                    "Tole : ${_tole.text}\n"),
+                                actions: [
+                                  TextButton(
+                                    child: const Text("Yes"),
+                                    onPressed: () {
+                                      finalDialogYesCallBack(ctx);
                                     },
-                                  );
-                                }
-                              },
-                              child: const Text(
-                                'Submit',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
+                                  ),
+                                  TextButton(
+                                    child: const Text("No"),
+                                    onPressed: () {
+                                      Navigator.of(ctx).pop();
+                                    },
+                                  )
+                                ],
+                              );
+                            },
                           );
                         }
-                      }),
+                      },
+                      child: const Text(
+                        'Submit',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             )),

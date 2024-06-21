@@ -1,6 +1,7 @@
 
 import 'dart:convert';
 
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:server_repository/models.dart';
 import 'package:server_repository/server_repository.dart';
@@ -16,8 +17,17 @@ class AddCustomerRepository{
   Future<String?> getCardPhoto() async{
     final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
     if(photo != null){
-      String img64 = base64Encode(await photo.readAsBytes());
-      return img64;
+      var result = await FlutterImageCompress.compressWithList(
+        await photo.readAsBytes(),
+        minWidth: 810,
+        minHeight: 810,
+        quality: 66,
+      );
+      if(result != null){
+        String img64 = base64Encode(result);
+        return img64;
+      }
+
     }
   }
   Future<bool> postAttachment({required modelName, required int recordID , required String dataBase64}) async{
@@ -38,11 +48,12 @@ class AddCustomerRepository{
 
   Future<NECreateCustomer> postCustomer({required int cBPGroupID ,required int cLocationID,
   required String name , required String phone ,
-    required int ne_qrcustomeradd_id,
+    required int ne_qrcustomeradd_id, required String billName,
     double? housestorynumber,String? email ,String? taxId,  bool? hasCard , String? cardBase64}) async{
     hasCard = hasCard ?? false;
     NECreateCustomer toPost = NECreateCustomer(<String,dynamic>{});
     toPost.name = name;
+    toPost.billName = billName;
     toPost.phone = phone;
     toPost.eMail = email;
     CBPGroupID groupID = CBPGroupID.copyWith(id: cBPGroupID);

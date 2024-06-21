@@ -23,9 +23,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _fetchTodayAmont(
       FetchTotalCollectionAmount event, Emitter<HomeState> emit) async {
-    emit(state.copyWith(isTotalAmountLoading: true));
-    int totalAmt = await homeRepository.getTodayTotalCollectionOfCollector();
-    emit(state.copyWith(isTotalAmountLoading: false, totalCollected: totalAmt));
+    emit(state.copyWith(
+        isAddLocationOkay: false,
+        newLocationAddInProgressOrTaken: false,
+        isQRValid: false,
+        isDirectPayment: false,
+    isTotalAmountLoading: true));
+    bool isUserADataCollector =
+        await authenticationRepository.isUserADataCollector();
+    if (isUserADataCollector) {
+      String? todayandtotalcustcreated = await homeRepository.getNoOfCreateCustomerByCollectorTodayandTotalString();
+      emit(state.copyWith(
+          isTotalAmountLoading: false,
+          todayTotalCustCreatedString: todayandtotalcustcreated,
+          isDatacollector: true));
+    } else {
+      double totalAmt =
+          await homeRepository.getTodayTotalCollectionOfCollector();
+      emit(state.copyWith(
+          isTotalAmountLoading: false,
+          totalCollected: totalAmt,
+          isDatacollector: false));
+    }
   }
 
   void _onChangeSelection(ChangeSelectionEvent event, Emitter<HomeState> emit) {
@@ -34,7 +53,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void _openQRScanner(QRScannedEvent event, Emitter<HomeState> emit) async {
     try {
-      // emit(state.copyWith(isLoading: true));
+      emit(state.copyWith(isLoading: true,
+        newLocationAddInProgressOrTaken: false,));
       if (event.isDirectPayment) {
         String value =
             event.qrData.substring(event.qrData.lastIndexOf("=") + 1);
@@ -42,11 +62,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             await homeRepository.getQRCustomerData(int.parse(value));
         if (qrCustomerAdd.inProgress!) {
           emit(state.copyWith(
+            isLoading: false,
               isQRValid: false,
               newLocationAddInProgressOrTaken: true,
               locationAddMsg: "Customer QR Data in Progress"));
         } else if (qrCustomerAdd.cBPartnerID == null) {
           emit(state.copyWith(
+              isLoading: false,
               isQRValid: false,
               newLocationAddInProgressOrTaken: true,
               locationAddMsg: "Customer QR Data Not linked yet"));
@@ -54,6 +76,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           CBpartner? custModel = await homeRepository
               .getCustomerFromID(qrCustomerAdd.cBPartnerID!.id!);
           emit(state.copyWith(
+              isLoading: false,
               qrData: event.qrData,
               isQRValid: event.isQRValid,
               isDirectPayment: true,
@@ -66,6 +89,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           gpLink = event.qrData.substring(0, event.qrData.length - 1);
           gpcode = gpLink.substring(gpLink.lastIndexOf('/') + 1);
           emit(state.copyWith(
+              isLoading: false,
               newLocationAddInProgressOrTaken: false,
               isAddLocationOkay: false,
               qrData: gpcode,
@@ -80,11 +104,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               await homeRepository.getQRLocationData(int.parse(dataFinal));
           if (qrLocationAdd.inProgress!) {
             emit(state.copyWith(
+                isLoading: false,
                 isQRValid: false,
                 newLocationAddInProgressOrTaken: true,
                 locationAddMsg: "Location QR Data in Progress"));
           } else if (qrLocationAdd.cLocationID == null) {
             emit(state.copyWith(
+                isLoading: false,
                 isQRValid: false,
                 newLocationAddInProgressOrTaken: true,
                 locationAddMsg: "Location QR Data Not linked yet"));
@@ -93,17 +119,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                 .getLocationFromID(qrLocationAdd.cLocationID!.id!);
             gpcode = location.gpcode!;
             emit(state.copyWith(
+                isLoading: false,
                 qrData: gpcode,
                 isQRValid: event.isQRValid,
                 isDirectPayment: false));
           }
         }
-        emit(state.copyWith(
-          newLocationAddInProgressOrTaken: false,
-            isAddLocationOkay: false,
-            qrData: gpcode,
-            isQRValid: false,
-            isDirectPayment: false));
+
       }
     } catch (e, stacktrace) {
       Utils.toastMessage(e.toString());
@@ -118,34 +140,37 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   void _locationAddFunction(
       LocationAddQRScannedEvent event, Emitter<HomeState> emit) async {
     try {
+      emit(state.copyWith(isLoading: true));
+
       int ID = int.parse(event.id);
       NEQrLocationAdd neQrLocationAdd =
           await homeRepository.getQRLocationData(ID);
       if (neQrLocationAdd.inProgress!) {
         emit(state.copyWith(
-          isQRValid: false,
+            isQRValid: false,
+            isLoading: false,
             newLocationAddInProgressOrTaken: true,
             locationAddMsg: "Location Addition in Progress"));
       }
-      if (neQrLocationAdd.taken!) {
+      else if (neQrLocationAdd.taken!) {
         emit(state.copyWith(
             isQRValid: false,
+            isLoading: false,
             newLocationAddInProgressOrTaken: true,
             locationAddMsg: "Location Already In Use"));
       }
-      if (!neQrLocationAdd.inProgress! && !neQrLocationAdd.taken!) {
+      else if (!neQrLocationAdd.inProgress! && !neQrLocationAdd.taken!) {
         emit(state.copyWith(
             isQRValid: false,
+            isLoading: false,
             isAddLocationOkay: true,
             newLocationAddInProgressOrTaken: false,
             locationAddMsg: neQrLocationAdd.id!.toString()));
       }
 
       emit(state.copyWith(
-          newLocationAddInProgressOrTaken: false,
-          isAddLocationOkay: false,
-          isQRValid: false,
-          isDirectPayment: false));
+        isLoading: false,
+));
     } catch (e) {
       Utils.toastMessage(e.toString());
     }

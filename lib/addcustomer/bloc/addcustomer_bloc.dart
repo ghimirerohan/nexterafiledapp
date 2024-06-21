@@ -26,9 +26,9 @@ class AddCustomerBloc extends Bloc<AddCustomerEvent, AddCustomerState> {
       emit(state.copyWith(response: ApiResponse<List<CBPGroup>>.loading()));
       List<CBPGroup> data = await _customerRepository.getCBPGroups();
       Map<String, int> cbGroupIdNameMap = {
-        for (CBPGroup item in data) item.name!: item.id!
+        for (CBPGroup item in data) item.englishName!: item.id!
       };
-      List<String> ddCBGNames = data.map((item) => item.name!).toList();
+      List<String> ddCBGNames = data.map((item) => item.englishName!).toList();
       emit(state.copyWith(
           response: ApiResponse<List<CBPGroup>>.completed(data),
           cbGroupIdNameMap: cbGroupIdNameMap,
@@ -45,6 +45,7 @@ class AddCustomerBloc extends Bloc<AddCustomerEvent, AddCustomerState> {
     emit(state.copyWith(isPostLoading: true));
     try{
       NECreateCustomer postedData = await _customerRepository.postCustomer(
+        billName: event.billName,
         ne_qrcustomeradd_id: event.ne_qrcustomeradd_id,
           cBPGroupID: event.c_bp_group_id,
           cLocationID: event.c_location_id,

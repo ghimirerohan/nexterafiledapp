@@ -1,3 +1,4 @@
+import 'package:auth_repository/auth_repository.dart';
 import 'package:server_repository/server_repository.dart';
 
 enum CustListStatus { none ,error, openPayment , addNew}
@@ -8,6 +9,7 @@ class CustListRepo{
   final CustomerApiRepository customerApiRepository = CustomerApiRepository();
   final CPeriodApiRepository cPeriodApiRepository = CPeriodApiRepository();
   final QRCustomerAddApi qrCustomerAddApi = QRCustomerAddApi();
+  final AuthenticationRepository authenticationRepository = AuthenticationRepository();
 
 
   Future<NEQrCustomerAdd> getQRCustomerData(int id) async{
@@ -23,6 +25,9 @@ class CustListRepo{
     }
   }
 
+  Future<bool> getisDataCollector() async{
+    return await authenticationRepository.isUserADataCollectorFromCache();
+  }
   Future<CLocation?> updateLocation(CLocation data) async{
     ApiResponse<CLocation> response = await locationRepository.updateLocation(data);
     return response.data;

@@ -51,55 +51,55 @@ class NetworkApiService<ModelBase> implements BaseApiServices {
 
   @override
   Future getDataApiResponse(
-  {FilterBuilder? filter, List<String>? select}) async {
+  {FilterBuilder? filter, List<String>? select , List<String>? orderBy}) async {
     try {
       switch (ModelBase) {
         case MUser:
       List<MUser> response = await IdempiereClient()
           .get<MUser>("/models/${MUser.model}", (json) => MUser(json),
-      filter: filter, select: select ?? [])
+      filter: filter, select: select ?? [] , orderBy : orderBy ?? []  )
           .timeout(const Duration(seconds: 20));
           return   ApiResponse<List<MUser>>.completed(response);
         case RestAuth:
           List<RestAuth> response = await IdempiereClient()
               .get<RestAuth>("/models/${RestAuth.model}", (json) => RestAuth(json),
-              filter: filter, select: select ?? [])
+              filter: filter, select: select ?? [] , orderBy : orderBy ?? [])
               .timeout(const Duration(seconds: 20));
           return   ApiResponse<List<RestAuth>>.completed(response);
         case CLocation:
           List<CLocation> response = await IdempiereClient()
               .get<CLocation>("/models/${CLocation.model}", (json) => CLocation(json),
-              filter: filter, select: select ?? [])
+              filter: filter, select: select ?? [] , orderBy : orderBy ?? [])
               .timeout(const Duration(seconds: 20));
           return   ApiResponse<List<CLocation>>.completed(response);
         case CBpartner:
           List<CBpartner> response = await IdempiereClient()
               .get<CBpartner>("/models/${CBpartner.model}", (json) => CBpartner(json),
-              filter: filter, select: select ?? [])
+              filter: filter, select: select ?? [] , orderBy : orderBy ?? [])
               .timeout(const Duration(seconds: 20));
           return   ApiResponse<List<CBpartner>>.completed(response);
         case CBPGroup:
           List<CBPGroup> response = await IdempiereClient()
               .get<CBPGroup>("/models/${CBPGroup.model}", (json) => CBPGroup(json),
-              filter: filter , select: select ?? [])
+              filter: filter , select: select ?? [] , orderBy : orderBy ?? [])
               .timeout(const Duration(seconds: 20));
           return   ApiResponse<List<CBPGroup>>.completed(response);
         case NECreateCustomer:
           List<NECreateCustomer> response = await IdempiereClient()
               .get<NECreateCustomer>("/models/${NECreateCustomer.model}", (json) => NECreateCustomer(json),
-              filter: filter , select: select ?? [])
+              filter: filter , select: select ?? [] , orderBy : orderBy ?? [])
               .timeout(const Duration(seconds: 20));
           return   ApiResponse<List<NECreateCustomer>>.completed(response);
         case CPeriod:
           List<CPeriod> response = await IdempiereClient()
               .get<CPeriod>("/models/${CPeriod.model}", (json) => CPeriod(json),
-              filter: filter , select: select ?? [])
+              filter: filter , select: select ?? [] , orderBy : orderBy ?? [])
               .timeout(const Duration(seconds: 20));
           return   ApiResponse<List<CPeriod>>.completed(response);
         case CPayment:
           List<CPayment> response = await IdempiereClient()
               .get<CPayment>("/models/${CPayment.model}", (json) => CPayment(json),
-              filter: filter , select: select ?? [])
+              filter: filter , select: select ?? [] , orderBy : orderBy ?? [])
               .timeout(const Duration(seconds: 20));
           return   ApiResponse<List<CPayment>>.completed(response);
       }
@@ -219,6 +219,34 @@ class NetworkApiService<ModelBase> implements BaseApiServices {
       }
       return false;
   }
+
+  @override
+  Future<ProcessSummary?> runProcess({required String slugName, Map<String, dynamic>? body}) async {
+    try{
+      if(body != null){
+        ProcessSummary ps = await IdempiereClient().runProcess(
+            "/processes/$slugName",
+            params: body).timeout(const Duration(seconds: 60));
+        return ps;
+      }else{
+        ProcessSummary ps = await IdempiereClient().runProcess(
+            "/processes/$slugName"
+        ).timeout(const Duration(seconds: 60));
+        return ps;
+      }
+    } on SocketException {
+      throw NoInternetException('No Internet Connection');
+    } on TimeoutException {
+      throw FetchDataException('Network Request time out');
+    } on APIException catch (e) {
+      exceptionHandler(e.message, e.statusCode);
+    } on Exception catch(e){
+      exceptionHandler(e.toString() , 0);
+    }
+
+  }
+
+
   void exceptionHandler(String msg, int? code) {
     switch (code) {
       case 400:

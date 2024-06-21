@@ -28,7 +28,7 @@ class CustListBloc extends Bloc<CustListEvent, CustListState> {
       CLocation location = (await _repo.getLocationFromGPCode(event.GPCode))!;
       List<CBpartner>? customers = await _repo.getCustomersList(location.id!);
       CPeriod currentPeriod = await _repo.getCurrentPeriod();
-      emit(state.copyWith(
+      emit(state.copyWith(isOnlyDataCollector: await _repo.getisDataCollector(),
           response: ApiResponse<List<CBpartner>>.completed(customers ?? []),
           status: CustListStatus.none,
           c_location: location,

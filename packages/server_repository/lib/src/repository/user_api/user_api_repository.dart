@@ -9,16 +9,23 @@ import 'user_repository.dart';
 
 class UserApiRepository implements UserRepository {
 
-  final BaseApiServices _apiServices = NetworkApiService<MUser>() ;
+  final NetworkApiService _apiServices = NetworkApiService<MUser>() ;
 
   @override
   Future<ApiResponse<MUser>> getUser(String name)async{
     FilterBuilder filter = FilterBuilder()
     .addFilter("name", Operators.eq, name);
-    ApiResponse<List<MUser>> queryResult = await _apiServices.getDataApiResponse( filter: filter,select: ['Name']);
+    ApiResponse<List<MUser>> queryResult = await _apiServices.getDataApiResponse( filter: filter,select: ['Name' , 'isDataCollector']);
     ApiResponse<MUser> returnUser = ApiResponse<MUser>.completed(queryResult.data?[0]);
     return returnUser;
 
+  }
+
+  Future<MUser?> getUserFromID({required int ad_user_id}) async{
+    ApiResponse<MUser?> response = await
+        _apiServices.getRecordApiResponse(ad_user_id);
+
+    return response.data;
   }
 
 

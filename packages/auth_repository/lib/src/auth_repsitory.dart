@@ -56,17 +56,18 @@ class AuthenticationRepository {
     bool auth = await loginApiRepository.login(username: username, password: password,
         clientId: 1000000, roleId: 1000003, lang: "en-GB");
     if(auth){
-      storage.clearValue("username");
-      storage.clearValue("restauthtoken");
-      storage.clearValue("userid");
+      await storage.clearValue("username");
+      await storage.clearValue("restauthtoken");
+      await storage.clearValue("userid");
       ApiResponse<MUser>? user = await userApiRepository.getUser(username);
       if(user != null){
-        storage.setValue("username", username);
-        storage.setValue("userid", user!.data!.id!.toString());
+        await storage.setValue("isDataCollector", user!.data!.isDataCollector!.toString());
+        await storage.setValue("username", username);
+        await storage.setValue("userid", user!.data!.id!.toString());
         AuthTokenApiRepo auth = AuthTokenApiRepo();
         ApiResponse<RestAuth>? response = await auth.getToken(user!.data!.id!);
         if(response != null){
-          storage.setValue("restauthtoken" , response.data!.token!);
+          await storage.setValue("restauthtoken" , response.data!.token!);
         }
       }
       _controller.add(AuthenticationStatus.authenticated );
@@ -74,6 +75,25 @@ class AuthenticationRepository {
     }
   }
 
+  Future<bool> isUserADataCollector() async{
+    String? userId = await storage.readValue("userid");
+    if(userId != null){
+      MUser? response = await userApiRepository.getUserFromID(ad_user_id: int.parse(userId));
+      if(response != null){
+        await storage.setValue("isDataCollector", response.isDataCollector!.toString());
+        return response.isDataCollector!;
+      }
+    }
+    return false;
+  }
+
+  Future<bool> isUserADataCollectorFromCache() async{
+    String? cachevalue = await storage.readValue("isDataCollector");
+    if(cachevalue != null){
+      return cachevalue == "true";
+    }
+    return false;
+  }
 
 
   void dispose() => _controller.close();

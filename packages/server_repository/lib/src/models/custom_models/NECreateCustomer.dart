@@ -8,6 +8,7 @@ class NECreateCustomer extends ModelBase{
   String? uid;
   String? value;
   String? name;
+  String? billName;
   bool? hasCard;
   CBPGroupID? cLocationID;
   String? phone;
@@ -26,6 +27,7 @@ class NECreateCustomer extends ModelBase{
     value = json['Value'];
     name = json['Name'];
     hasCard = json['HasCard'];
+    billName = json['Name2'];
     cLocationID = json['C_Location_ID'] != null
         ? new CBPGroupID.fromJson(json['C_Location_ID'])
         : null;
@@ -60,6 +62,7 @@ class NECreateCustomer extends ModelBase{
     phone = json['Phone'];
     eMail = json['EMail'];
     taxId = json['TaxID'];
+    billName = json['Name2'];
     houseStoreyNumber = json['house_storey_number'];
     cBPGroupID = json['C_BP_Group_ID'] != null
         ? new CBPGroupID.fromJson(json['C_BP_Group_ID'])
@@ -84,6 +87,8 @@ class NECreateCustomer extends ModelBase{
     data['Value'] = value;
     data['Name'] = name;
     data['HasCard'] = hasCard;
+    data['Name2'] = billName ;
+
     if (cLocationID != null) {
       data['C_Location_ID'] = cLocationID!.toJson();
     }

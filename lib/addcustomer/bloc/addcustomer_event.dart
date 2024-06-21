@@ -10,6 +10,7 @@ class PostCustomerEvents implements AddCustomerEvent{
 
   final String name;
   final String phone;
+  final String billName;
   final int c_bp_group_id;
   final int c_location_id;
   final double? housestory;
@@ -25,6 +26,7 @@ class PostCustomerEvents implements AddCustomerEvent{
     required this.c_location_id,
     this.email,
     this.housestory,
+    required this.billName,
     this.taxID,
     required this.ne_qrcustomeradd_id,
     required this.context

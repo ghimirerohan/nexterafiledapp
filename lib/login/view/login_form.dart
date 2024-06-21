@@ -23,6 +23,11 @@ class _LoginFormState extends State<LoginForm> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
 
+  _closeFocusAfterLoginButton(){
+    _emailFocusNode.unfocus();
+    _passwordFocusNode.unfocus();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -149,11 +154,30 @@ class _LoginFormState extends State<LoginForm> {
                 const SizedBox(
                   height: 42,
                 ),
-                const SubmitButton(),
+                BlocBuilder<LoginBloc, MyFormState>(
+                  buildWhen: (previous, current) => previous.status != current.status,
+                  builder: (context, state) {
+                    return  state.status.isSubmissionInProgress ? const CircularProgressIndicator() :
+                    SizedBox(
+                      height: 45,width: 222,
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(const Color(0xFF4485c5)),
+                        ),
+                        onPressed: state.status.isValidated
+                            ? () => {_closeFocusAfterLoginButton(),
+                          context.read<LoginBloc>().add(FormSubmitted(context: context))}
+                            : null,
+                        child:  const Text('Login',style: TextStyle(color: Colors.white , fontWeight: FontWeight.bold),),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
         ),
+        extendBody: true,
       ),
     );
   }
@@ -245,31 +269,7 @@ class PasswordInput extends StatelessWidget {
   }
 }
 
-class SubmitButton extends StatelessWidget {
-  const SubmitButton({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<LoginBloc, MyFormState>(
-      buildWhen: (previous, current) => previous.status != current.status,
-      builder: (context, state) {
-        return  state.status.isSubmissionInProgress ? const CircularProgressIndicator() :
-        SizedBox(
-          height: 45,width: 222,
-          child: ElevatedButton(
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(const Color(0xFF4485c5)),
-            ),
-            onPressed: state.status.isValidated
-                ? () => context.read<LoginBloc>().add(FormSubmitted(context: context))
-                : null,
-            child:  const Text('Login',style: TextStyle(color: Colors.white , fontWeight: FontWeight.bold),),
-          ),
-        );
-      },
-    );
-  }
-}
 
 
 

@@ -1,3 +1,4 @@
+import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_validator/form_validator.dart';
@@ -9,6 +10,8 @@ import 'package:next_era_collector/app.dart';
 import 'package:next_era_collector/custlist/view/custlist_screen.dart';
 import 'package:server_repository/api_response.dart';
 import 'package:server_repository/models.dart';
+
+import '../../res/widgets/MsgDialog.dart';
 
 class AddCustomerPage extends StatefulWidget {
   final String title;
@@ -66,25 +69,26 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
         }
       },
       child: Scaffold(
-          appBar: AppBar(
-            leading: BackButton(
-              color: Colors.white,
-              onPressed: () {
-                _popBackCustList();
-              },
-            ),
-            centerTitle: true,
-            title: const Text(
-              "New Customer",
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF047857),
+        body: AddCustBody(
+          c_location_id: widget.c_location_id,
+          title: widget.title,
+          ne_qrcustomeradd_id: widget.ne_qrcustomeradd_id,
+        ),
+        appBar: AppBar(
+          leading: BackButton(
+            color: Colors.white,
+            onPressed: () {
+              _popBackCustList();
+            },
           ),
-          body: AddCustBody(
-            c_location_id: widget.c_location_id,
-            title: widget.title,
-            ne_qrcustomeradd_id: widget.ne_qrcustomeradd_id,
-          )),
+          centerTitle: true,
+          title: Text(
+            "New Customer ${widget.ne_qrcustomeradd_id}",
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: const Color(0xFF047857),
+        ),
+      ),
     );
   }
 }
@@ -105,6 +109,29 @@ class AddCustBody extends StatefulWidget {
 }
 
 class _AddCustBodyState extends State<AddCustBody> {
+  late SingleValueDropDownController _cnt;
+
+  @override
+  void dispose() {
+    _cnt.dispose();
+    _nameFocusNode.dispose();
+    _phoneFocusNode.dispose();
+    _cbpGroupFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _houseStorNoFocusNode.dispose();
+    _panNoFocusNode.dispose();
+    _name.dispose();
+
+    _mobile.dispose();
+
+    _email.dispose();
+
+    _housestory.dispose();
+
+    _taxId.dispose();
+    super.dispose();
+  }
+
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _name = TextEditingController();
@@ -116,16 +143,18 @@ class _AddCustBodyState extends State<AddCustBody> {
   final TextEditingController _housestory = TextEditingController();
 
   final TextEditingController _taxId = TextEditingController();
+  final TextEditingController _billNameCnt = TextEditingController();
 
   @override
   void initState() {
+    _cnt = SingleValueDropDownController();
     context.read<AddCustomerBloc>().add(FetchCBPGroupEvent());
   }
 
   CBPGroup? getGroupModelFromName(String name) {
     for (CBPGroup value
         in context.read<AddCustomerBloc>().state.response.data!) {
-      if (value.name == name) {
+      if (value.englishName == name) {
         return value;
       }
     }
@@ -134,13 +163,14 @@ class _AddCustBodyState extends State<AddCustBody> {
   void finalDialogYesCallBack(BuildContext ctx) {
     Navigator.of(ctx).pop();
     context.read<AddCustomerBloc>().add(PostCustomerEvents(
+      billName: _billNameCnt.text,
         name: _name.text,
         phone: _mobile.text,
         email: _email.text == "" ? null : _email.text,
         housestory:
             _housestory.text == "" ? null : double.parse(_housestory.text),
         c_bp_group_id: context.read<AddCustomerBloc>().state.cbGroupIdNameMap[
-            context.read<AddCustomerBloc>().state.selectedDDCBPGroup!.name]!,
+            context.read<AddCustomerBloc>().state.selectedDDCBPGroup!.englishName]!,
         c_location_id: widget.c_location_id,
         taxID: _taxId.text == "" ? null : _taxId.text,
         ne_qrcustomeradd_id: widget.ne_qrcustomeradd_id,
@@ -149,10 +179,21 @@ class _AddCustBodyState extends State<AddCustBody> {
 
   final _nameFocusNode = FocusNode();
   final _phoneFocusNode = FocusNode();
+  final _billName = FocusNode();
   final _cbpGroupFocusNode = FocusNode();
   final _emailFocusNode = FocusNode();
   final _houseStorNoFocusNode = FocusNode();
   final _panNoFocusNode = FocusNode();
+
+  _unFocusAllFieldAfterSubitButtonPressed() {
+    _nameFocusNode.unfocus();
+    _phoneFocusNode.unfocus();
+    _cbpGroupFocusNode.unfocus();
+    _emailFocusNode.unfocus();
+    _houseStorNoFocusNode.unfocus();
+    _panNoFocusNode.unfocus();
+    _billName.unfocus();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +262,8 @@ class _AddCustBodyState extends State<AddCustBody> {
                               .minLength(1, '*Required')
                               .maxLength(50, 'Long Expression'),
                           focusNode: _nameFocusNode,
-                        ), //Name
+                        ),
+                        //Name
                         const SizedBox(
                           height: 20,
                         ),
@@ -235,58 +277,134 @@ class _AddCustBodyState extends State<AddCustBody> {
                                   color: Colors.grey.shade100,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: DropdownButtonFormField<String>(
-                                    isExpanded: true,
-                                    focusNode: _cbpGroupFocusNode,
-                                    value: state.selectedDDCBPGroup?.name,
-                                    onChanged: (value) {
-                                      context.read<AddCustomerBloc>().add(
-                                          ChangeCBPGroupDDEvent(
-                                              value: getGroupModelFromName(
-                                                  value!)!));
-                                    },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return '* Required';
-                                      }
+                                child: DropDownTextField(
+                                  searchKeyboardType: TextInputType.text,
+                                  searchShowCursor: true,
+                                  textFieldFocusNode: _cbpGroupFocusNode,
+                                  clearOption: true,
+                                  enableSearch: true,
+                                  clearIconProperty:
+                                      IconProperty(color: Color(0xFF047857)),
+                                  searchTextStyle:
+                                      const TextStyle(color: Color(0xFF047857)),
+                                  searchDecoration: const InputDecoration(
+                                      hintText: "Group Name"),
+                                  textFieldDecoration: InputDecoration(
+                                      focusColor: Colors.white,
+                                      focusedBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Color(0xFF047857)),
+                                          borderRadius:
+                                              BorderRadius.circular(9)),
+                                      border: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.red),
+                                          borderRadius:
+                                              BorderRadius.circular(9)),
+                                      hintText: 'Customer Type',
+                                      labelText: 'Customer Group',
+                                      labelStyle: const TextStyle(
+                                          color: Color(0xFF047857),
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600),
+                                      hintStyle: const TextStyle(
+                                          color: Color(0xFF047857),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w300),
+                                      suffixIcon: const Icon(
+                                        Icons.group_add,
+                                        size: 25,
+                                      ),
+                                      suffixIconColor: const Color(0xFF047857)),
+                                  validator: (value) {
+                                    if (value == null || value == "") {
+                                      return "Required field";
+                                    } else {
                                       return null;
-                                    },
-                                    decoration: InputDecoration(
-                                        focusColor: Colors.white,
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: const BorderSide(
-                                                color: Color(0xFF047857)),
-                                            borderRadius:
-                                                BorderRadius.circular(9)),
-                                        border: OutlineInputBorder(
-                                            borderSide: const BorderSide(
-                                                color: Colors.red),
-                                            borderRadius:
-                                                BorderRadius.circular(9)),
-                                        hintText: 'Customer Type',
-                                        labelText: 'Customer Group',
-                                        labelStyle: const TextStyle(
-                                            color: Color(0xFF047857),
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600),
-                                        hintStyle: const TextStyle(
-                                            color: Color(0xFF047857),
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w300),
-                                        suffixIcon: const Icon(
-                                          Icons.group_add,
-                                          size: 25,
-                                        ),
-                                        suffixIconColor:
-                                            const Color(0xFF047857)),
-                                    items: addCustBloc.state.ddCBGNames
-                                        .map<DropdownMenuItem<String>>(
-                                            (String value) {
-                                      return DropdownMenuItem<String>(
-                                          value: value, child: Text(value));
-                                    }).toList()),
+                                    }
+                                  },
+                                  dropDownItemCount:
+                                      addCustBloc.state.ddCBGNames.length,
+                                  dropDownList: addCustBloc.state.ddCBGNames
+                                      .map<DropDownValueModel>((String value) {
+                                    return DropDownValueModel(
+                                        name: value, value: value);
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      if (value != "") {
+                                        context.read<AddCustomerBloc>().add(
+                                            ChangeCBPGroupDDEvent(
+                                                value: getGroupModelFromName(
+                                                    value.name)!));
+                                      }
+                                    }
+                                  },
+                                ),
                               );
                             }),
+                        // BlocBuilder<AddCustomerBloc, AddCustomerState>(
+                        //     buildWhen: (previous, current) =>
+                        //         previous.selectedDDCBPGroup !=
+                        //         current.selectedDDCBPGroup,
+                        //     builder: (context, state) {
+                        //       return Container(
+                        //         decoration: BoxDecoration(
+                        //           color: Colors.grey.shade100,
+                        //           borderRadius: BorderRadius.circular(6),
+                        //         ),
+                        //         child: DropdownButtonFormField<String>(
+                        //             isExpanded: true,
+                        //             focusNode: _cbpGroupFocusNode,
+                        //             value: state.selectedDDCBPGroup?.name,
+                        //             onChanged: (value) {
+                        //               context.read<AddCustomerBloc>().add(
+                        //                   ChangeCBPGroupDDEvent(
+                        //                       value: getGroupModelFromName(
+                        //                           value!)!));
+                        //             },
+                        //             validator: (value) {
+                        //               if (value == null) {
+                        //                 return '* Required';
+                        //               }
+                        //               return null;
+                        //             },
+                        //             decoration: InputDecoration(
+                        //                 focusColor: Colors.white,
+                        //                 focusedBorder: OutlineInputBorder(
+                        //                     borderSide: const BorderSide(
+                        //                         color: Color(0xFF047857)),
+                        //                     borderRadius:
+                        //                         BorderRadius.circular(9)),
+                        //                 border: OutlineInputBorder(
+                        //                     borderSide: const BorderSide(
+                        //                         color: Colors.red),
+                        //                     borderRadius:
+                        //                         BorderRadius.circular(9)),
+                        //                 hintText: 'Customer Type',
+                        //                 labelText: 'Customer Group',
+                        //                 labelStyle: const TextStyle(
+                        //                     color: Color(0xFF047857),
+                        //                     fontSize: 18,
+                        //                     fontWeight: FontWeight.w600),
+                        //                 hintStyle: const TextStyle(
+                        //                     color: Color(0xFF047857),
+                        //                     fontSize: 15,
+                        //                     fontWeight: FontWeight.w300),
+                        //                 suffixIcon: const Icon(
+                        //                   Icons.group_add,
+                        //                   size: 25,
+                        //                 ),
+                        //                 suffixIconColor:
+                        //                     const Color(0xFF047857)),
+                        //             items: addCustBloc.state.ddCBGNames
+                        //                 .map<DropdownMenuItem<String>>(
+                        //                     (String value) {
+                        //               return DropdownMenuItem<String>(
+                        //                   value: value, child: Text(value));
+                        //             }).toList()),
+                        //       );
+                        //     }),
                         const SizedBox(
                           height: 20,
                         ),
@@ -303,7 +421,27 @@ class _AddCustBodyState extends State<AddCustBody> {
                               .minLength(10, "10 Digit")
                               .maxLength(10, "10 Digit"),
                           focusNode: _phoneFocusNode,
-                        ), //Phone
+                        ),
+                        //Phone
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        InputField(
+                          editingController: _billNameCnt,
+                          labelText: "Bill Name",
+                          hintText: "Bills Name",
+                          icon: const Icon(
+                            Icons.newspaper,
+                            size: 25,
+                          ),
+                          inputType: TextInputType.text,
+                          validationBuilder: ValidationBuilder()
+                              .minLength(1, '*Required')
+                              .maxLength(50, 'Long Expression'),
+                          focusNode: _billName,
+                        ),
+                        //Name
+
                         const SizedBox(
                           height: 20,
                         ),
@@ -317,7 +455,8 @@ class _AddCustBodyState extends State<AddCustBody> {
                           ),
                           inputType: TextInputType.emailAddress,
                           focusNode: _emailFocusNode,
-                        ), //Email
+                        ),
+                        //Email
                         const SizedBox(
                           height: 20,
                         ),
@@ -361,7 +500,8 @@ class _AddCustBodyState extends State<AddCustBody> {
                           ),
                           inputType: TextInputType.number,
                           focusNode: _panNoFocusNode,
-                        ), //taxId
+                        ),
+                        //taxId
                         const SizedBox(
                           height: 20,
                         ),
@@ -383,50 +523,51 @@ class _AddCustBodyState extends State<AddCustBody> {
                                   fontWeight: FontWeight.w500, fontSize: 21),
                             )
                           ],
-                        ), // HasCardCheck()
+                        ),
+                        // HasCardCheck()
                         BlocBuilder<AddCustomerBloc, AddCustomerState>(
                             builder: (context, state) {
-                              if (!state.hasCard) {
-                                return const SizedBox();
-                              } else {
-                                return Column(
-                                  children: [
-                                    SizedBox(
-                                      height: 33,
-                                      width: 144,
-                                      child: ElevatedButton(
-                                        style: ButtonStyle(
-                                          backgroundColor:
+                          if (!state.hasCard) {
+                            return const SizedBox();
+                          } else {
+                            return Column(
+                              children: [
+                                SizedBox(
+                                  height: 33,
+                                  width: 144,
+                                  child: ElevatedButton(
+                                    style: ButtonStyle(
+                                      backgroundColor:
                                           MaterialStateProperty.all(
                                               Colors.blueGrey),
-                                        ),
-                                        onPressed: () {
-                                          addCustBloc.add(OpenCameraForCard());
-                                        },
-                                        child: Text(
-                                          state.cardBase64 == null
-                                              ? 'Upload'
-                                              : 'Re-Upload',
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
                                     ),
-                                    const SizedBox(
-                                      height: 8,
+                                    onPressed: () {
+                                      addCustBloc.add(OpenCameraForCard());
+                                    },
+                                    child: Text(
+                                      state.cardBase64 == null
+                                          ? 'Upload'
+                                          : 'Re-Upload',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                    if (state.cardBase64 != null)
-                                      const Text(
-                                        'Uploaded !',
-                                        style: TextStyle(
-                                            color: Colors.green,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                  ],
-                                );
-                              }
-                            }),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                if (state.cardBase64 != null)
+                                  const Text(
+                                    'Uploaded !',
+                                    style: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                              ],
+                            );
+                          }
+                        }),
 
                         const SizedBox(height: 27),
                         BlocBuilder<AddCustomerBloc, AddCustomerState>(
@@ -443,6 +584,8 @@ class _AddCustBodyState extends State<AddCustBody> {
                                       const Color(0xFF047857)),
                                 ),
                                 onPressed: () {
+                                  _unFocusAllFieldAfterSubitButtonPressed();
+
                                   if (_formKey.currentState!.validate()) {
                                     if (state.hasCard &&
                                         state.cardBase64 == null) {
@@ -455,7 +598,7 @@ class _AddCustBodyState extends State<AddCustBody> {
                                     } else {
                                       _formKey.currentState!.save();
                                       String groupCBPToShow = addCustBloc
-                                          .state.selectedDDCBPGroup!.name!;
+                                          .state.selectedDDCBPGroup!.englishName!;
                                       showDialog(
                                         context: context,
                                         builder: (BuildContext ctx) {
@@ -508,43 +651,3 @@ class _AddCustBodyState extends State<AddCustBody> {
   }
 }
 
-class MsgDialog extends StatelessWidget {
-  String msg;
-
-  MsgDialog({required this.msg});
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                const Icon(Icons.info),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Text(
-                      msg,
-                      softWrap: true,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
