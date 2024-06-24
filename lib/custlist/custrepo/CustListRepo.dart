@@ -10,6 +10,7 @@ class CustListRepo{
   final CPeriodApiRepository cPeriodApiRepository = CPeriodApiRepository();
   final QRCustomerAddApi qrCustomerAddApi = QRCustomerAddApi();
   final AuthenticationRepository authenticationRepository = AuthenticationRepository();
+  final CreateCustomerApiRepository createCustomerApiRepository = CreateCustomerApiRepository();
 
 
   Future<NEQrCustomerAdd> getQRCustomerData(int id) async{

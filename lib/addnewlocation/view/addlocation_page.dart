@@ -20,23 +20,23 @@ import '../bloc/addlocation_state.dart';
 class AddLocationPage extends StatefulWidget {
   final int ne_qrlocationadd_id;
 
-  const AddLocationPage(
-      {super.key,required this.ne_qrlocationadd_id});
+  const AddLocationPage({super.key, required this.ne_qrlocationadd_id});
 
   @override
   State<AddLocationPage> createState() => _AddLocationPageState();
 }
 
 class _AddLocationPageState extends State<AddLocationPage> {
-  _popBackCustList(){
+  _popBackCustList() {
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          title:
-          const Text("Get Back ?"),
-          content: const Text("Discard Location Addition ?",style:
-          TextStyle(fontWeight: FontWeight.bold , fontSize: 18),),
+          title: const Text("Get Back ?"),
+          content: const Text(
+            "Discard Location Addition ?",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
           actions: [
             TextButton(
               child: const Text("Yes"),
@@ -60,39 +60,53 @@ class _AddLocationPageState extends State<AddLocationPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
-      onPopInvoked: (value){
-        if(value){
-          _popBackCustList();
-        }
-      },
-      child: Scaffold(
-          appBar: AppBar(
-            leading: BackButton(
-              color: Colors.white,
-              onPressed: () {
-                _popBackCustList();
-              },
-            ),
-            centerTitle: true,
-            title:  Text(
-              "New Location ${widget.ne_qrlocationadd_id}",
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF047857),
-          ),
-          body: AddLocationBody(
-            ne_qrlocationadd_id: widget.ne_qrlocationadd_id,
-          )),
-    );
+        canPop: false,
+        onPopInvoked: (value) {
+          if (value) {
+            _popBackCustList();
+          }
+        },
+        child:
+        BlocBuilder<AddLocationBloc, AddLocationState>(
+            builder: (context, state) {
+              return Stack(children: [
+                Scaffold(
+                    appBar: AppBar(
+                      leading: BackButton(
+                        color: Colors.white,
+                        onPressed: () {
+                          _popBackCustList();
+                        },
+                      ),
+                      centerTitle: true,
+                      title: Text(
+                        "New Location ${widget.ne_qrlocationadd_id}",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: const Color(0xFF047857),
+                    ),
+                    body: AddLocationBody(
+                      ne_qrlocationadd_id: widget.ne_qrlocationadd_id,
+                    )),
+                if (state.isPostLoading)
+                  const Opacity(
+                    opacity: 0.8,
+                    child: ModalBarrier(dismissible: false, color: Colors.black),
+                  ),
+                if (state.isPostLoading)
+                  const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+              ]);
+            })
+        );
   }
 }
 
 class AddLocationBody extends StatefulWidget {
   final int ne_qrlocationadd_id;
 
-  const AddLocationBody(
-      {super.key, required this.ne_qrlocationadd_id});
+  const AddLocationBody({super.key, required this.ne_qrlocationadd_id});
 
   @override
   State<AddLocationBody> createState() => _AddLocationBodyState();
@@ -111,56 +125,42 @@ class _AddLocationBodyState extends State<AddLocationBody> {
 
   final TextEditingController _long = TextEditingController();
 
-
   @override
-  void initState() {
-  }
-
+  void initState() {}
 
   void finalDialogYesCallBack(BuildContext ctx) {
     Navigator.of(ctx).pop();
     context.read<AddLocationBloc>().add(DraftLocationAdditionEvent(
         ne_qrlocationadd_id: widget.ne_qrlocationadd_id,
-        ward: context.read<AddLocationBloc>().state.selectedWard!, tole:
-    _tole.text , street: _street.text ,owner: _owner.text ));
+        ward: context.read<AddLocationBloc>().state.selectedWard!,
+        tole: _tole.text,
+        street: _street.text,
+        owner: _owner.text));
   }
 
+  _unFocusonSubmit(){
+    _toleFocusNode.unfocus();
+    _streetFocusNode.unfocus();
+    _wardFocusNode.unfocus();
+    _ownerFocusNode.unfocus();
+  }
   final _toleFocusNode = FocusNode();
   final _streetFocusNode = FocusNode();
   final _wardFocusNode = FocusNode();
   final _ownerFocusNode = FocusNode();
-  final _latFocusNode = FocusNode();
-  final _longFocusNode = FocusNode();
-  final _listWard = ['1' ,'2' , '3' ,'4' , '5' , '6' , '7' , '8' , '9' , '10'];
+
+  final _listWard = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
   @override
   Widget build(BuildContext context) {
     final addCustBloc = context.read<AddLocationBloc>();
     return BlocListener<AddLocationBloc, AddLocationState>(
       listener: (context, state) {
-        if (state.isPostLoading) {
-          showDialog<void>(
-              context: context,
-              builder: (_) => const Overlayloading());
-        }else{
-          if(Navigator.of(context).canPop()){
-            Navigator.of(context).pop();
-          }
-        }
         if (state.isPosted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(
-                content: Text('New Location Drafted'),
-                backgroundColor: Colors.green,
-              ),
-            );
           Navigator.of(context).push(HomeScreen.route());
           showDialog<void>(
               context: context,
-              builder: (_) =>  MsgDialog(msg: "Location Add Success"));
-          
+              builder: (_) => MsgDialog(msg: "Location Add Success"));
         }
       },
       child: Form(
@@ -193,8 +193,7 @@ class _AddLocationBodyState extends State<AddLocationBody> {
                   ),
                   BlocBuilder<AddLocationBloc, AddLocationState>(
                       buildWhen: (previous, current) =>
-                      previous.selectedWard !=
-                          current.selectedWard,
+                      previous.selectedWard != current.selectedWard,
                       builder: (context, state) {
                         return Container(
                           decoration: BoxDecoration(
@@ -206,8 +205,9 @@ class _AddLocationBodyState extends State<AddLocationBody> {
                               focusNode: _wardFocusNode,
                               value: state.selectedWard,
                               onChanged: (value) {
-                                context.read<AddLocationBloc>().add(
-                                    ChangeWardEvent(ward: value!));
+                                context
+                                    .read<AddLocationBloc>()
+                                    .add(ChangeWardEvent(ward: value!));
                               },
                               validator: (value) {
                                 if (value == null) {
@@ -220,13 +220,11 @@ class _AddLocationBodyState extends State<AddLocationBody> {
                                   focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                           color: Color(0xFF047857)),
-                                      borderRadius:
-                                      BorderRadius.circular(9)),
+                                      borderRadius: BorderRadius.circular(9)),
                                   border: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                          color: Colors.red),
-                                      borderRadius:
-                                      BorderRadius.circular(9)),
+                                      borderSide:
+                                      const BorderSide(color: Colors.red),
+                                      borderRadius: BorderRadius.circular(9)),
                                   hintText: 'Ward No',
                                   labelText: 'Ward ?',
                                   labelStyle: const TextStyle(
@@ -241,10 +239,8 @@ class _AddLocationBodyState extends State<AddLocationBody> {
                                     Icons.group_add,
                                     size: 25,
                                   ),
-                                  suffixIconColor:
-                                  const Color(0xFF047857)),
-                              items: _listWard
-                                  .map<DropdownMenuItem<String>>(
+                                  suffixIconColor: const Color(0xFF047857)),
+                              items: _listWard.map<DropdownMenuItem<String>>(
                                       (String value) {
                                     return DropdownMenuItem<String>(
                                         value: value, child: Text(value));
@@ -263,8 +259,8 @@ class _AddLocationBodyState extends State<AddLocationBody> {
                       size: 25,
                     ),
                     inputType: TextInputType.text,
-                    validationBuilder: ValidationBuilder()
-                        .required("Tole Name Needed"),
+                    validationBuilder:
+                    ValidationBuilder().required("Tole Name Needed"),
                     focusNode: _toleFocusNode,
                   ), //Phone
                   const SizedBox(
@@ -296,15 +292,16 @@ class _AddLocationBodyState extends State<AddLocationBody> {
                       ),
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
+                          _unFocusonSubmit();
                           _formKey.currentState!.save();
                           showDialog(
                             context: context,
                             builder: (BuildContext ctx) {
                               return AlertDialog(
-                                title:
-                                const Text("Post New Location ?"),
-                                content: Text("Ward : ${addCustBloc.state.selectedWard}\n"
-                                    "Tole : ${_tole.text}\n"),
+                                title: const Text("Post New Location ?"),
+                                content: Text(
+                                    "Ward : ${addCustBloc.state.selectedWard}\n"
+                                        "Tole : ${_tole.text}\n"),
                                 actions: [
                                   TextButton(
                                     child: const Text("Yes"),
@@ -327,15 +324,14 @@ class _AddLocationBodyState extends State<AddLocationBody> {
                       child: const Text(
                         'Submit',
                         style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
+                            color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
                 ],
               ),
             )),
-      ),
+      )
     );
   }
 }

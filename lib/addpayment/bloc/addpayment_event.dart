@@ -20,7 +20,7 @@ class PostPaymentData implements AddPaymentEvent{
   final int c_bpartner_id;
   final int fromPeriodID;
   final int toPeriodID;
-  final int payAmt;
+  final double payAmt;
   final BuildContext context;
 
   PostPaymentData({required this.c_bpartner_id ,

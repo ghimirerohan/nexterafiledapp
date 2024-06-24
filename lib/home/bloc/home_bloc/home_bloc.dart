@@ -28,11 +28,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         newLocationAddInProgressOrTaken: false,
         isQRValid: false,
         isDirectPayment: false,
-    isTotalAmountLoading: true));
+        isTotalAmountLoading: true));
     bool isUserADataCollector =
         await authenticationRepository.isUserADataCollector();
     if (isUserADataCollector) {
-      String? todayandtotalcustcreated = await homeRepository.getNoOfCreateCustomerByCollectorTodayandTotalString();
+      String? todayandtotalcustcreated = await homeRepository
+          .getNoOfCreateCustomerByCollectorTodayandTotalString();
       emit(state.copyWith(
           isTotalAmountLoading: false,
           todayTotalCustCreatedString: todayandtotalcustcreated,
@@ -53,8 +54,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   void _openQRScanner(QRScannedEvent event, Emitter<HomeState> emit) async {
     try {
-      emit(state.copyWith(isLoading: true,
-        newLocationAddInProgressOrTaken: false,));
+      emit(state.copyWith(
+        isLoading: true,
+        newLocationAddInProgressOrTaken: false,
+      ));
       if (event.isDirectPayment) {
         String value =
             event.qrData.substring(event.qrData.lastIndexOf("=") + 1);
@@ -62,7 +65,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             await homeRepository.getQRCustomerData(int.parse(value));
         if (qrCustomerAdd.inProgress!) {
           emit(state.copyWith(
-            isLoading: false,
+              isLoading: false,
               isQRValid: false,
               newLocationAddInProgressOrTaken: true,
               locationAddMsg: "Customer QR Data in Progress"));
@@ -125,9 +128,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                 isDirectPayment: false));
           }
         }
-
       }
+
+      emit(
+        state.copyWith(
+            isLoading: false,
+            isQRValid: false,
+            newLocationAddInProgressOrTaken: false,
+            isDirectPayment: false),
+      );
     } catch (e, stacktrace) {
+      emit(
+        state.copyWith(
+            isLoading: false,
+            isQRValid: false,
+            newLocationAddInProgressOrTaken: false,
+            isDirectPayment: false),
+      );
       Utils.toastMessage(e.toString());
     }
   }
@@ -151,15 +168,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             isLoading: false,
             newLocationAddInProgressOrTaken: true,
             locationAddMsg: "Location Addition in Progress"));
-      }
-      else if (neQrLocationAdd.taken!) {
+      } else if (neQrLocationAdd.taken!) {
         emit(state.copyWith(
             isQRValid: false,
             isLoading: false,
             newLocationAddInProgressOrTaken: true,
             locationAddMsg: "Location Already In Use"));
-      }
-      else if (!neQrLocationAdd.inProgress! && !neQrLocationAdd.taken!) {
+      } else if (!neQrLocationAdd.inProgress! &&
+          !neQrLocationAdd.taken! &&
+          neQrLocationAdd.cLocationID == null) {
         emit(state.copyWith(
             isQRValid: false,
             isLoading: false,
@@ -169,8 +186,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
 
       emit(state.copyWith(
+        isQRValid: false,
         isLoading: false,
-));
+        isAddLocationOkay: false,
+        newLocationAddInProgressOrTaken: false,
+      ));
     } catch (e) {
       Utils.toastMessage(e.toString());
     }

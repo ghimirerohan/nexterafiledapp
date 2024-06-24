@@ -61,6 +61,8 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final addCustBloc = context.read<AddCustomerBloc>();
+
     return PopScope(
       canPop: false,
       onPopInvoked: (value) {
@@ -68,26 +70,38 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
           _popBackCustList();
         }
       },
-      child: Scaffold(
-        body: AddCustBody(
-          c_location_id: widget.c_location_id,
-          title: widget.title,
-          ne_qrcustomeradd_id: widget.ne_qrcustomeradd_id,
-        ),
-        appBar: AppBar(
-          leading: BackButton(
-            color: Colors.white,
-            onPressed: () {
-              _popBackCustList();
-            },
+      child: Stack(
+        children: [
+          Scaffold(
+          body: AddCustBody(
+            c_location_id: widget.c_location_id,
+            title: widget.title,
+            ne_qrcustomeradd_id: widget.ne_qrcustomeradd_id,
           ),
-          centerTitle: true,
-          title: Text(
-            "New Customer ${widget.ne_qrcustomeradd_id}",
-            style: const TextStyle(color: Colors.white),
+          appBar: AppBar(
+            leading: BackButton(
+              color: Colors.white,
+              onPressed: () {
+                _popBackCustList();
+              },
+            ),
+            centerTitle: true,
+            title: Text(
+              "New Customer ${widget.ne_qrcustomeradd_id}",
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: const Color(0xFF047857),
           ),
-          backgroundColor: const Color(0xFF047857),
         ),
+          if (addCustBloc.state.isPostLoading)
+            const Opacity(
+              opacity: 0.8,
+              child: ModalBarrier(dismissible: false, color: Colors.black),
+            ),
+          if (addCustBloc.state.isPostLoading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),]
       ),
     );
   }
@@ -201,15 +215,10 @@ class _AddCustBodyState extends State<AddCustBody> {
     return BlocListener<AddCustomerBloc, AddCustomerState>(
       listener: (context, state) {
         if (state.isPosted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(
-                content: Text('New Customer Added'),
-                backgroundColor: Colors.green,
-              ),
-            );
           Navigator.of(context).push(CustListScreen.route(widget.title));
+          showDialog<void>(
+              context: context,
+              builder: (_) =>  MsgDialog(msg: "Customer Add Success"));
         }
       },
       child: BlocBuilder<AddCustomerBloc, AddCustomerState>(
@@ -269,7 +278,7 @@ class _AddCustBodyState extends State<AddCustBody> {
                         ),
                         BlocBuilder<AddCustomerBloc, AddCustomerState>(
                             buildWhen: (previous, current) =>
-                                previous.selectedDDCBPGroup !=
+                            previous.selectedDDCBPGroup !=
                                 current.selectedDDCBPGroup,
                             builder: (context, state) {
                               return Container(
@@ -284,9 +293,9 @@ class _AddCustBodyState extends State<AddCustBody> {
                                   clearOption: true,
                                   enableSearch: true,
                                   clearIconProperty:
-                                      IconProperty(color: Color(0xFF047857)),
+                                  IconProperty(color: Color(0xFF047857)),
                                   searchTextStyle:
-                                      const TextStyle(color: Color(0xFF047857)),
+                                  const TextStyle(color: Color(0xFF047857)),
                                   searchDecoration: const InputDecoration(
                                       hintText: "Group Name"),
                                   textFieldDecoration: InputDecoration(
@@ -295,12 +304,12 @@ class _AddCustBodyState extends State<AddCustBody> {
                                           borderSide: const BorderSide(
                                               color: Color(0xFF047857)),
                                           borderRadius:
-                                              BorderRadius.circular(9)),
+                                          BorderRadius.circular(9)),
                                       border: OutlineInputBorder(
                                           borderSide: const BorderSide(
                                               color: Colors.red),
                                           borderRadius:
-                                              BorderRadius.circular(9)),
+                                          BorderRadius.circular(9)),
                                       hintText: 'Customer Type',
                                       labelText: 'Customer Group',
                                       labelStyle: const TextStyle(
@@ -324,7 +333,7 @@ class _AddCustBodyState extends State<AddCustBody> {
                                     }
                                   },
                                   dropDownItemCount:
-                                      addCustBloc.state.ddCBGNames.length,
+                                  addCustBloc.state.ddCBGNames.length,
                                   dropDownList: addCustBloc.state.ddCBGNames
                                       .map<DropDownValueModel>((String value) {
                                     return DropDownValueModel(
@@ -462,7 +471,7 @@ class _AddCustBodyState extends State<AddCustBody> {
                         ),
                         BlocBuilder<AddCustomerBloc, AddCustomerState>(
                             buildWhen: (previous, current) =>
-                                previous.selectedDDCBPGroup !=
+                            previous.selectedDDCBPGroup !=
                                 current.selectedDDCBPGroup,
                             builder: (context, state) {
                               return InputField(
@@ -476,13 +485,13 @@ class _AddCustBodyState extends State<AddCustBody> {
                                 inputType: TextInputType.number,
                                 focusNode: _houseStorNoFocusNode,
                                 validationBuilder: context
-                                            .read<AddCustomerBloc>()
-                                            .state
-                                            .selectedDDCBPGroup
-                                            ?.isStoryBased ==
-                                        true
+                                    .read<AddCustomerBloc>()
+                                    .state
+                                    .selectedDDCBPGroup
+                                    ?.isStoryBased ==
+                                    true
                                     ? ValidationBuilder().required(
-                                        "Need House Story Number For This Group")
+                                    "Need House Story Number For This Group")
                                     : null,
                               ); //House Storey No
                             }),
@@ -527,118 +536,111 @@ class _AddCustBodyState extends State<AddCustBody> {
                         // HasCardCheck()
                         BlocBuilder<AddCustomerBloc, AddCustomerState>(
                             builder: (context, state) {
-                          if (!state.hasCard) {
-                            return const SizedBox();
-                          } else {
-                            return Column(
-                              children: [
-                                SizedBox(
-                                  height: 33,
-                                  width: 144,
-                                  child: ElevatedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor:
+                              if (!state.hasCard) {
+                                return const SizedBox();
+                              } else {
+                                return Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 33,
+                                      width: 144,
+                                      child: ElevatedButton(
+                                        style: ButtonStyle(
+                                          backgroundColor:
                                           MaterialStateProperty.all(
                                               Colors.blueGrey),
+                                        ),
+                                        onPressed: () {
+                                          addCustBloc.add(OpenCameraForCard());
+                                        },
+                                        child: Text(
+                                          state.cardBase64 == null
+                                              ? 'Upload'
+                                              : 'Re-Upload',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      addCustBloc.add(OpenCameraForCard());
-                                    },
-                                    child: Text(
-                                      state.cardBase64 == null
-                                          ? 'Upload'
-                                          : 'Re-Upload',
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
+                                    const SizedBox(
+                                      height: 8,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                if (state.cardBase64 != null)
-                                  const Text(
-                                    'Uploaded !',
-                                    style: TextStyle(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                              ],
-                            );
-                          }
-                        }),
+                                    if (state.cardBase64 != null)
+                                      const Text(
+                                        'Uploaded !',
+                                        style: TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                  ],
+                                );
+                              }
+                            }),
 
                         const SizedBox(height: 27),
-                        BlocBuilder<AddCustomerBloc, AddCustomerState>(
-                            builder: (context, state) {
-                          if (state.isPostLoading) {
-                            return const CircularProgressIndicator();
-                          } else {
-                            return SizedBox(
-                              height: 45,
-                              width: 222,
-                              child: ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                      const Color(0xFF047857)),
-                                ),
-                                onPressed: () {
-                                  _unFocusAllFieldAfterSubitButtonPressed();
+                        SizedBox(
+                          height: 45,
+                          width: 222,
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(
+                                  const Color(0xFF047857)),
+                            ),
+                            onPressed: () {
+                              _unFocusAllFieldAfterSubitButtonPressed();
 
-                                  if (_formKey.currentState!.validate()) {
-                                    if (state.hasCard &&
-                                        state.cardBase64 == null) {
-                                      showDialog(
-                                          context: context,
-                                          builder: (BuildContext ctx) {
-                                            return MsgDialog(
-                                                msg: "Card Picture Needed !");
-                                          });
-                                    } else {
-                                      _formKey.currentState!.save();
-                                      String groupCBPToShow = addCustBloc
-                                          .state.selectedDDCBPGroup!.englishName!;
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext ctx) {
-                                          return AlertDialog(
-                                            title: const Text(
-                                                "Post New Customer ?"),
-                                            content:
-                                                Text("Name : ${_name.text}\n"
-                                                    "Group : $groupCBPToShow\n"
-                                                    "Phone : ${_mobile.text}"),
-                                            actions: [
-                                              TextButton(
-                                                child: const Text("Yes"),
-                                                onPressed: () {
-                                                  finalDialogYesCallBack(ctx);
-                                                },
-                                              ),
-                                              TextButton(
-                                                child: const Text("No"),
-                                                onPressed: () {
-                                                  Navigator.of(ctx).pop();
-                                                },
-                                              )
-                                            ],
-                                          );
-                                        },
+                              if (_formKey.currentState!.validate()) {
+                                if (state.hasCard &&
+                                    state.cardBase64 == null) {
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext ctx) {
+                                        return MsgDialog(
+                                            msg: "Card Picture Needed !");
+                                      });
+                                } else {
+                                  _formKey.currentState!.save();
+                                  String groupCBPToShow = addCustBloc
+                                      .state.selectedDDCBPGroup!.englishName!;
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext ctx) {
+                                      return AlertDialog(
+                                        title: const Text(
+                                            "Post New Customer ?"),
+                                        content:
+                                        Text("Name : ${_name.text}\n"
+                                            "Group : $groupCBPToShow\n"
+                                            "Phone : ${_mobile.text}"),
+                                        actions: [
+                                          TextButton(
+                                            child: const Text("Yes"),
+                                            onPressed: () {
+                                              finalDialogYesCallBack(ctx);
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: const Text("No"),
+                                            onPressed: () {
+                                              Navigator.of(ctx).pop();
+                                            },
+                                          )
+                                        ],
                                       );
-                                    }
-                                  }
-                                },
-                                child: const Text(
-                                  'Submit',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            );
-                          }
-                        }),
+                                    },
+                                  );
+                                }
+                              }
+                            },
+                            child: const Text(
+                              'Submit',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   )),

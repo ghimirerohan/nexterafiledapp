@@ -106,15 +106,6 @@ class _HomePageState extends State<HomePage> {
     final homeBloc = context.read<HomeBloc>();
     return BlocListener<HomeBloc, HomeState>(
       listener: (BuildContext context, HomeState state) async {
-        if (state.isLoading) {
-          showDialog<void>(
-              context: context,
-              builder: (_) => const Overlayloading());
-        }else{
-          if(Navigator.of(context).canPop()){
-            Navigator.of(context).pop();
-          }
-        }
         if (state.isQRValid) {
           if (state.isDirectPayment) {
             if (state.custModel == null) {
@@ -152,112 +143,131 @@ class _HomePageState extends State<HomePage> {
             _popBackExitCallBack();
           }
         },
-        child: Scaffold(
-            extendBody: true,
-            body: Container(
-              constraints: const BoxConstraints.expand(),
-              decoration: BoxDecoration(
-                  image: const DecorationImage(
-                      image: AssetImage("assets/images/damakCover.jpg"),
-                      fit: BoxFit.cover),
-                  color: Colors.green.shade100),
-              child: Column(
+        child: BlocBuilder<HomeBloc, HomeState>(
+          builder: (BuildContext context, HomeState state) {
+            return Stack(
                 children: [
-                  const SizedBox(
-                    height: 36,
-                  ),
-                  topArea(authBloc.userName, context),
-                  const SizedBox(
-                    height: 57,
-                  ),
-                  BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-                    return getMidScreen(state.selection, context);
-                  }),
-                ],
-              ),
-            ),
-            floatingActionButton: FloatingActionButton(
-              backgroundColor: Colors.black.withOpacity(.7),
-              elevation: 11,
-              focusColor: Colors.black.withOpacity(.3),
-              focusElevation: 22,
-              child: const Icon(
-                Icons.qr_code_2_rounded,
-                color: Colors.white,
-                size: 51,
-              ),
-              onPressed: () async {
-                if (widget.prevGPCode != null && widget.prevGPCode != "") {
-                  showDialog<void>(
-                    context: context,
-                    builder: (_) => Center(
-                      child: Container(
-                        width: 333,
-                        height: 222,
-                        child: Padding(
-                          padding: const EdgeInsets.all(9.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ElevatedButton(
-                                  onPressed: () {
-                                    _onOpenPreviousData(context);
-                                  },
-                                  child: const Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Text("Open Previous Scanned Data"),
-                                      Icon(Icons.history)
-                                    ],
-                                  )),
-                              const SizedBox(
-                                height: 6,
-                              ),
-                              ElevatedButton(
-                                  onPressed: () async {
-                                    _onScanNewData(context);
-                                  },
-                                  child: const Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Text("Scan New Data"),
-                                      Icon(Icons.qr_code_scanner_outlined)
-                                    ],
-                                  ))
-                            ],
+                  Scaffold(
+                    extendBody: true,
+                    body: Container(
+                      constraints: const BoxConstraints.expand(),
+                      decoration: BoxDecoration(
+                          image: const DecorationImage(
+                              image: AssetImage("assets/images/damakCover.jpg"),
+                              fit: BoxFit.cover),
+                          color: Colors.green.shade100),
+                      child: Column(
+                        children: [
+                          const SizedBox(
+                            height: 36,
                           ),
-                        ),
+                          topArea(authBloc.userName, context),
+                          const SizedBox(
+                            height: 57,
+                          ),
+                          BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+                            return getMidScreen(state.selection, context);
+                          }),
+                        ],
                       ),
                     ),
-                  );
-                } else {
-                  _onScanNewData(null);
-                }
-              }, //params
-            ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerDocked,
-            bottomNavigationBar: BlocBuilder<HomeBloc, HomeState>(
-              builder: (BuildContext context, HomeState state) {
-                return AnimatedBottomNavigationBar(
-                  gapLocation: GapLocation.center,
-                  iconSize: 45,
-                  activeColor: const Color(0xFF16a34a),
-                  inactiveColor: Colors.white,
-                  icons: const [Icons.people_rounded, Icons.payments_outlined],
-                  backgroundColor: Colors.black.withOpacity(.6),
-                  notchSmoothness: NotchSmoothness.verySmoothEdge,
-                  leftCornerRadius: 12,
-                  rightCornerRadius: 12,
-                  activeIndex: state.selection,
-                  onTap: (int) {
-                    homeBloc.add(ChangeSelectionEvent(selection: int));
-                  },
-                );
-              },
-            )),
+                    floatingActionButton: FloatingActionButton(
+                      backgroundColor: Colors.black.withOpacity(.7),
+                      elevation: 11,
+                      focusColor: Colors.black.withOpacity(.3),
+                      focusElevation: 22,
+                      child: const Icon(
+                        Icons.qr_code_2_rounded,
+                        color: Colors.white,
+                        size: 51,
+                      ),
+                      onPressed: () async {
+                        if (widget.prevGPCode != null && widget.prevGPCode != "") {
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => Center(
+                              child: Container(
+                                width: 333,
+                                height: 222,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(9.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      ElevatedButton(
+                                          onPressed: () {
+                                            _onOpenPreviousData(context);
+                                          },
+                                          child: const Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              Text("Open Previous Scanned Data"),
+                                              Icon(Icons.history)
+                                            ],
+                                          )),
+                                      const SizedBox(
+                                        height: 6,
+                                      ),
+                                      ElevatedButton(
+                                          onPressed: () async {
+                                            _onScanNewData(context);
+                                          },
+                                          child: const Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              Text("Scan New Data"),
+                                              Icon(Icons.qr_code_scanner_outlined)
+                                            ],
+                                          ))
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        } else {
+                          _onScanNewData(null);
+                        }
+                      }, //params
+                    ),
+                    floatingActionButtonLocation:
+                    FloatingActionButtonLocation.centerDocked,
+                    bottomNavigationBar: BlocBuilder<HomeBloc, HomeState>(
+                      builder: (BuildContext context, HomeState state) {
+                        return AnimatedBottomNavigationBar(
+                          gapLocation: GapLocation.center,
+                          iconSize: 45,
+                          activeColor: const Color(0xFF16a34a),
+                          inactiveColor: Colors.white,
+                          icons: const [Icons.people_rounded, Icons.payments_outlined],
+                          backgroundColor: Colors.black.withOpacity(.6),
+                          notchSmoothness: NotchSmoothness.verySmoothEdge,
+                          leftCornerRadius: 12,
+                          rightCornerRadius: 12,
+                          activeIndex: state.selection,
+                          onTap: (int) {
+                            homeBloc.add(ChangeSelectionEvent(selection: int));
+                          },
+                        );
+                      },
+                    )),
+                  if (state.isLoading)
+                    const Opacity(
+                      opacity: 0.8,
+                      child: ModalBarrier(dismissible: false, color: Colors.black),
+                    ),
+                  if (state.isLoading)
+                    const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                ]
+            );
+          },
+        )
+
+
       ),
     );
   }

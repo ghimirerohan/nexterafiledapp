@@ -28,7 +28,7 @@ class AddLocationBloc extends Bloc<AddLocationEvent, AddLocationState> {
       if(posted){
         emit(state.copyWith(isPostLoading: false ,isPosted: true));
       }else{
-        emit(state.copyWith(isPostLoading: false));
+        emit(state.copyWith(isPostLoading: false ,isPosted: false ));
         Utils.toastMessage("Something went wrong");
 
       }

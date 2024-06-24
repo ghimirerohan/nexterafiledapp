@@ -16,7 +16,7 @@ class CBpartner extends ModelBase{
   bool? hasCard;
   String? email;
   double? housestoreynumber;
-  int? ratePerMonth;
+  double? ratePerMonth;
   DocStatus? lastPayStatus;
   String? taxId;
   String? modelName;
@@ -29,7 +29,22 @@ class CBpartner extends ModelBase{
     phone = json['Name2'];
     hasCard = json['HasCard'];
     email =json['EMail'];
-    housestoreynumber = json['house_storey_number'];
+    if(json['house_storey_number'] != null){
+      String housetala = json['house_storey_number'].toString();
+      if(housetala.contains(".")){
+        housestoreynumber = json['house_storey_number'];
+      }else{
+        housestoreynumber = double.parse(housetala);
+      }
+    }
+    if(json['Price'] != null){
+      String priceString = json['Price'].toString();
+      if(priceString.contains(".")){
+        ratePerMonth = json['Price'];
+      }else{
+        ratePerMonth = double.parse(priceString);
+      }
+    }
 
     cBPGroupID = json['C_BP_Group_ID'] != null
         ? CBPGroupID.fromJson(json['C_BP_Group_ID'])
@@ -47,7 +62,7 @@ class CBpartner extends ModelBase{
     currentFromPeriodID = json['C_Period_ID'] != null
         ? CBPGroupID.fromJson(json['C_Period_ID'])
         : null;
-    ratePerMonth = json['Price'];
+
     taxId = json['TaxID'];
     modelName = json['model-name'];
   }

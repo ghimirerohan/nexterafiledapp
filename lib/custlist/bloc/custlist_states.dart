@@ -15,7 +15,8 @@ import 'package:server_repository/server_repository.dart';
      this.customerAddMsg = "",
      this.isAddCustomerInProgressorTaken = false,
      this.ne_qrcustomeradd_id = 0,
-     this.isOnlyDataCollector = false
+     this.isOnlyDataCollector = false,
+     this.isAddCustomerQRScanLoading = false
 
  });
 
@@ -29,7 +30,8 @@ import 'package:server_repository/server_repository.dart';
      String? customerAddMsg,
      bool? isAddCustomerInProgressorTaken,
      int? ne_qrcustomeradd_id,
-     bool? isOnlyDataCollector
+     bool? isOnlyDataCollector,
+     bool? isAddCustomerQRScanLoading
    }){
      return CustListState(
          response: response ?? this.response,
@@ -42,6 +44,7 @@ import 'package:server_repository/server_repository.dart';
          isAddCustomerInProgressorTaken: isAddCustomerInProgressorTaken ?? this.isAddCustomerInProgressorTaken,
          ne_qrcustomeradd_id : ne_qrcustomeradd_id ?? this.ne_qrcustomeradd_id,
          isOnlyDataCollector : isOnlyDataCollector ?? this.isOnlyDataCollector,
+         isAddCustomerQRScanLoading : isAddCustomerQRScanLoading ?? this.isAddCustomerQRScanLoading
      );
    }
    final ApiResponse<List<CBpartner>> response;
@@ -54,12 +57,13 @@ import 'package:server_repository/server_repository.dart';
    final bool isAddCustomerInProgressorTaken;
    final int ne_qrcustomeradd_id;
    final bool isOnlyDataCollector ;
+   final bool isAddCustomerQRScanLoading;
 
 
    @override
   // TODO: implement props
   List<Object?> get props => [response,status,c_location,selectedPartner 
     ,currenPeriod , isUpdateOwnerNameLoading,customerAddMsg , isAddCustomerInProgressorTaken , ne_qrcustomeradd_id
-   ,isOnlyDataCollector];
+   ,isOnlyDataCollector,isAddCustomerQRScanLoading];
 }
 

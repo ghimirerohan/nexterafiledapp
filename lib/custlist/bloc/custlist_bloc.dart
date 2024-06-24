@@ -74,18 +74,24 @@ class CustListBloc extends Bloc<CustListEvent, CustListState> {
 
   Future<void> _qrscanned(QRScannedCustEvent event , Emitter<CustListState> emit) async{
     try{
+      emit(state.copyWith(isAddCustomerQRScanLoading: true));
       NEQrCustomerAdd qrCustomerAdd = await _repo.getQRCustomerData(event.ne_qrcustomeradd_id);
       if(qrCustomerAdd.inProgress!){
+        emit(state.copyWith(isAddCustomerQRScanLoading: false));
         emit(state.copyWith(isAddCustomerInProgressorTaken: true , customerAddMsg: "Customer Qr Data in progress"));
       }else if(qrCustomerAdd.taken!){
+        emit(state.copyWith(isAddCustomerQRScanLoading: false));
         emit(state.copyWith(isAddCustomerInProgressorTaken: true , customerAddMsg: "Customer Qr Data Already Taken"));
       }else{
+        emit(state.copyWith(isAddCustomerQRScanLoading: false));
         emit(state.copyWith(status: CustListStatus.addNew , isAddCustomerInProgressorTaken: false , ne_qrcustomeradd_id: qrCustomerAdd.id!));
       }
 
       emit(state.copyWith(isAddCustomerInProgressorTaken: false , status: CustListStatus.none));
 
     }catch(e , stacktrace){
+      emit(state.copyWith(isAddCustomerQRScanLoading: false));
+      emit(state.copyWith(isAddCustomerInProgressorTaken: false , status: CustListStatus.none));
       Utils.toastMessage(e.toString());
     }
   }

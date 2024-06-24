@@ -88,162 +88,177 @@ class _CustListPageState extends State<CustListPage> {
           _popBackHome();
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          leading: BackButton(
-            color: Colors.white,
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                  HomeScreen.route(prevGPCode: widget.title), (route) => false);
-            },
-          ),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  _onScanNewData();
-                },
-                icon: const Icon(
-                  Icons.add,
-                  color: Colors.white,
-                  size: 30,
-                ))
-          ],
-          centerTitle: true,
-          title: Text(
-            widget.title,
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFF047857),
-        ),
-        body: BlocListener<CustListBloc, CustListState>(
-          listener: (context, state) {
-            if (state.isAddCustomerInProgressorTaken) {
-              showDialog<void>(
-                context: context,
-                builder: (_) => MsgDialog(msg: state.customerAddMsg),
-              );
-            }
-            switch (state.status) {
-              case CustListStatus.error:
-                Utils.flushBarErrorMessage(
-                    state.response.message ?? "Error", context);
-              case CustListStatus.addNew:
-                if (state.c_location == null) {
-                  Utils.flushBarErrorMessage(
-                      "No Connection Internet / Server Error", context);
-                } else {
-                  Navigator.of(context).push(AddCustomerScreen.route(
-                      title: widget.title,
-                      c_location_id: state.c_location!.id!
-                  ,ne_qrcustomeradd_id: state.ne_qrcustomeradd_id));
-                }
-              // case CustListStatus.none:
-              //   context.read<CustListBloc>().add(FetchDataEvent(GPCode: widget.title));
-              case CustListStatus.openPayment:
-                Navigator.of(context).push(AddPaymentScreen.route(
-                    title: widget.title, cBpartner: state.selectedPartner!));
+      child:
+      BlocBuilder<CustListBloc, CustListState>(
+          builder: (context, state) {
 
-              default:
-            }
-          },
-          child: BlocBuilder<CustListBloc, CustListState>(
-
-              builder: (context, state) {
-            switch (state.response.status) {
-              case Status.completed:
-                if(state.c_location?.ownerName == null){
-                  return AddHouseOwner();
-                }
-                if (state.response.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      children: [
-                        const Text(
-                          "\nNo Customers From This Location \nPlease, Add New +",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(
-                          height: 24,
-                        ),
-                        ElevatedButton(
-                            onPressed: () {
-                              context
-                                  .read<CustListBloc>()
-                                  .add(FetchDataEvent(GPCode: widget.title));
-                            },
-                            child: const Text(
-                              "Refresh",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black),
-                            )),
-                      ],
-                    ),
-                  );
-                } else {
-                  return Column(
-                    children: [
-                      const CustomerListing(),
-                      Column(
-                        children: [
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          ElevatedButton(
-                              onPressed: () {
-                                context
-                                    .read<CustListBloc>()
-                                    .add(FetchDataEvent(GPCode: widget.title));
-                              },
-                              child: const Text(
-                                "Refresh",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
-                              )),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 24,
-                      )
-                    ],
-                  );
-                }
-              case Status.loading:
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              case Status.error:
-                return Center(
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(state.response.message ?? "some error"),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    ElevatedButton(
-                        onPressed: () async {
-                          context
-                              .read<CustListBloc>()
-                              .add(FetchDataEvent(GPCode: widget.title));
+            return Stack(children: [
+              Scaffold(
+                appBar: AppBar(
+                  leading: BackButton(
+                    color: Colors.white,
+                    onPressed: () {
+                      Navigator.of(context).pushAndRemoveUntil(
+                          HomeScreen.route(prevGPCode: widget.title), (route) => false);
+                    },
+                  ),
+                  actions: [
+                    IconButton(
+                        onPressed: () {
+                          _onScanNewData();
                         },
-                        child: const Text("Retry"))
+                        icon: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                          size: 30,
+                        ))
                   ],
-                ));
-              case null:
-                return const Center(
-                  child: Text("Null"),
-                );
-              default:
-                return const Center(
-                  child: Text("Customer List"),
-                );
-            }
-          }),
-        ),
-      ),
+                  centerTitle: true,
+                  title: Text(
+                    widget.title,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: const Color(0xFF047857),
+                ),
+                body: BlocListener<CustListBloc, CustListState>(
+                  listener: (context, state) {
+                    if (state.isAddCustomerInProgressorTaken) {
+                      showDialog<void>(
+                        context: context,
+                        builder: (_) => MsgDialog(msg: state.customerAddMsg),
+                      );
+                    }
+                    switch (state.status) {
+                      case CustListStatus.error:
+                        Utils.flushBarErrorMessage(
+                            state.response.message ?? "Error", context);
+                      case CustListStatus.addNew:
+                        if (state.c_location == null) {
+                          Utils.flushBarErrorMessage(
+                              "No Connection Internet / Server Error", context);
+                        } else {
+                          Navigator.of(context).push(AddCustomerScreen.route(
+                              title: widget.title,
+                              c_location_id: state.c_location!.id!
+                              ,ne_qrcustomeradd_id: state.ne_qrcustomeradd_id));
+                        }
+                    // case CustListStatus.none:
+                    //   context.read<CustListBloc>().add(FetchDataEvent(GPCode: widget.title));
+                      case CustListStatus.openPayment:
+                        Navigator.of(context).push(AddPaymentScreen.route(
+                            title: widget.title, cBpartner: state.selectedPartner!));
+
+                      default:
+                    }
+                  },
+                  child: BlocBuilder<CustListBloc, CustListState>(
+
+                      builder: (context, state) {
+                        switch (state.response.status) {
+                          case Status.completed:
+                            if(state.c_location?.ownerName == null){
+                              return AddHouseOwner();
+                            }
+                            if (state.response.data!.isEmpty) {
+                              return Center(
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      "\nNo Customers From This Location \nPlease, Add New +",
+                                      style: TextStyle(
+                                          fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(
+                                      height: 24,
+                                    ),
+                                    ElevatedButton(
+                                        onPressed: () {
+                                          context
+                                              .read<CustListBloc>()
+                                              .add(FetchDataEvent(GPCode: widget.title));
+                                        },
+                                        child: const Text(
+                                          "Refresh",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black),
+                                        )),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              return Column(
+                                children: [
+                                  const CustomerListing(),
+                                  Column(
+                                    children: [
+                                      const SizedBox(
+                                        height: 24,
+                                      ),
+                                      ElevatedButton(
+                                          onPressed: () {
+                                            context
+                                                .read<CustListBloc>()
+                                                .add(FetchDataEvent(GPCode: widget.title));
+                                          },
+                                          child: const Text(
+                                            "Refresh",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black),
+                                          )),
+                                    ],
+                                  ),
+                                  const SizedBox(
+                                    height: 24,
+                                  )
+                                ],
+                              );
+                            }
+                          case Status.error:
+                            return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(state.response.message ?? "some error"),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
+                                    ElevatedButton(
+                                        onPressed: () async {
+                                          context
+                                              .read<CustListBloc>()
+                                              .add(FetchDataEvent(GPCode: widget.title));
+                                        },
+                                        child: const Text("Retry"))
+                                  ],
+                                ));
+                          case null:
+                            return const Center(
+                              child: Text("Null"),
+                            );
+                          default:
+                            return const Center(
+                              child: Text("Customer List"),
+                            );
+                        }
+                      }),
+                ),
+              ),
+              if(state.response.status == Status.loading ||
+              state.isAddCustomerQRScanLoading)
+                const Opacity(
+                  opacity: 0.8,
+                  child: ModalBarrier(dismissible: false, color: Colors.black),
+                ),
+              if(state.response.status == Status.loading ||
+                  state.isAddCustomerQRScanLoading)
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
+            ],);
+          })
+      ,
     );
   }
 }

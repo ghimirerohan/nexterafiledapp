@@ -60,11 +60,12 @@ class AddCustomerBloc extends Bloc<AddCustomerEvent, AddCustomerState> {
       if (postedData.id != null) {
         emit(state.copyWith(isPosted: true, isPostLoading: false));
       }else{
+        emit(state.copyWith(isPosted: false, isPostLoading: false));
         Utils.flushBarErrorMessage("Problem in Server Side Posting Process", event.context);
       }
     }catch(e,stacktrace){
       Utils.flushBarErrorMessage(e.toString(), event.context);
-      emit(state.copyWith(isPostLoading: false));
+      emit(state.copyWith(isPostLoading: false,isPosted: false));
     }
   }
 

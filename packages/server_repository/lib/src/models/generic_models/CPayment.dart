@@ -5,7 +5,7 @@ import '../common_models/CBPartnerID.dart';
 
 class CPayment extends ModelBase{
   String? uid;
-  int? payAmt;
+  double? payAmt;
   CBPartnerID? cBPartnerID;
   String? dateTrx;
   CBPartnerID? toPeriodID;
@@ -18,7 +18,14 @@ class CPayment extends ModelBase{
   CPayment(json) : super(json){
     id = json['id'];
     uid = json['uid'];
-    payAmt = json['PayAmt'];
+    if(json['PayAmt'] != null){
+      String priceString = json['PayAmt'].toString();
+      if(priceString.contains(".")){
+        payAmt = json['PayAmt'];
+      }else{
+        payAmt = double.parse(priceString);
+      }
+    }
     cBPartnerID = json['C_BPartner_ID'] != null
         ? CBPartnerID.fromJson(json['C_BPartner_ID'])
         : null;

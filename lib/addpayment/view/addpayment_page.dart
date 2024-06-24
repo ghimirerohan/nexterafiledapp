@@ -8,6 +8,7 @@ import 'package:server_repository/models.dart';
 import '../../custlist/view/custlist_screen.dart';
 import '../../home/view/home_screen.dart';
 import '../../res/widgets/InputField.dart';
+import '../../res/widgets/MsgDialog.dart';
 import '../bloc/addpayment_state.dart';
 
 class AddPaymentPage extends StatefulWidget {
@@ -65,25 +66,39 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
       onPopInvoked: (value){
         _popBackCustList();
       },
-      child: Scaffold(
-          appBar: AppBar(
-            leading: BackButton(
-              color: Colors.white,
-              onPressed: () {
-                _popBackCustList();
-                },
-            ),
-            centerTitle: true,
-            title: const Text(
-              "New Payment",
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF047857),
-          ),
-          body: AddPayBody(
-            cBpartner: widget.cBpartner,
-            title: widget.title,
-          )),
+      child:  BlocBuilder<AddPaymentBloc, AddPaymentState>(
+          builder: (context, state) {
+            return Stack(children: [
+              Scaffold(
+                  appBar: AppBar(
+                    leading: BackButton(
+                      color: Colors.white,
+                      onPressed: () {
+                        _popBackCustList();
+                      },
+                    ),
+                    centerTitle: true,
+                    title:  Text(
+                      "New Payment" ,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    backgroundColor: const Color(0xFF047857),
+                  ),
+                  body: AddPayBody(
+                    cBpartner: widget.cBpartner,
+                    title: widget.title,
+                  )),
+              if (state.isPostLoading)
+                const Opacity(
+                  opacity: 0.8,
+                  child: ModalBarrier(dismissible: false, color: Colors.black),
+                ),
+              if (state.isPostLoading)
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
+            ],);}),
+
     );
   }
 }
@@ -114,9 +129,10 @@ class _AddPayBodyState extends State<AddPayBody> {
     }
   }
 
-  void finalDialogYesCallBack(BuildContext ctx , int payAmt) {
+  void finalDialogYesCallBack(BuildContext ctx , double payAmt) {
     Navigator.of(ctx).pop();
-    context.read<AddPaymentBloc>().add(PostPaymentData(
+    context.read<AddPaymentBloc>().add(
+        PostPaymentData(
         c_bpartner_id: widget.cBpartner.id!,
         fromPeriodID: widget.cBpartner.currentFromPeriodID!.id!,
         toPeriodID: context.read<AddPaymentBloc>().state.selectedDDCPeriod!.id!,
@@ -148,6 +164,9 @@ class _AddPayBodyState extends State<AddPayBody> {
           }else{
             Navigator.of(context).push(CustListScreen.route(widget.title!));
           }
+          showDialog<void>(
+              context: context,
+              builder: (_) => MsgDialog(msg: "Payment Add Success"));
         }
       },
       child: BlocBuilder<AddPaymentBloc, AddPaymentState>(
@@ -344,8 +363,8 @@ class _AddPayBodyState extends State<AddPayBody> {
                             builder: (context, state) {
                               int selectedMonths = state.selectedDDCPeriod!.id!
                                   - widget.cBpartner.currentFromPeriodID!.id! + 1;
-                              int ratePerMonth = widget.cBpartner.ratePerMonth!;
-                              int totalPrice = selectedMonths * ratePerMonth;
+                              double ratePerMonth = widget.cBpartner.ratePerMonth!;
+                              double totalPrice = selectedMonths * ratePerMonth;
                               return Column(
                                 children: [
                                   Text("Total Months : $selectedMonths     Total Price : Rs. $totalPrice",
@@ -361,72 +380,65 @@ class _AddPayBodyState extends State<AddPayBody> {
                         const SizedBox(
                           height: 21,
                         ),
-                        BlocBuilder<AddPaymentBloc, AddPaymentState>(
-                            builder: (context, state) {
-                              if (state.isPostLoading) {
-                                return const CircularProgressIndicator();
-                              } else {
-                                return SizedBox(
-                                  height: 45,
-                                  width: 180,
-                                  child: ElevatedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(
-                                          const Color(0xFF047857)),
-                                    ),
-                                    onPressed: () {
-                                      if (_formKey.currentState!.validate()) {
-                                        _formKey.currentState!.save();
-                                        int selectedMonths = state.selectedDDCPeriod!.id!
-                                            - widget.cBpartner.currentFromPeriodID!.id! + 1;
-                                        int ratePerMonth = widget.cBpartner.ratePerMonth!;
-                                        int totalPrice = selectedMonths * ratePerMonth;
-                                        if(selectedMonths >= 12){
-                                          totalPrice = totalPrice - ratePerMonth;
-                                        }
-                                        String selectedPeriod =
-                                        addPayBloc.state.selectedDDCPeriod!.name!;
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext ctx) {
-                                            return AlertDialog(
-                                              title:
-                                              const Text("Draft New Payment ?"),
-                                              content: Text("Name : ${widget.cBpartner.name}\n"
-                                                  "From : ${widget.cBpartner.toPeriodID!.identifier}"
-                                                  " To $selectedPeriod\n"
-                                                  "Total Months  : $selectedMonths\n"
-                                                  "Total Amount : Rs. $totalPrice",style:
-                                                const TextStyle(fontWeight: FontWeight.bold , fontSize: 18),),
-                                              actions: [
-                                                TextButton(
-                                                  child: const Text("Yes"),
-                                                  onPressed: () {
-                                                    finalDialogYesCallBack(ctx ,totalPrice );
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  child: const Text("No"),
-                                                  onPressed: () {
-                                                    Navigator.of(ctx).pop();
-                                                  },
-                                                )
-                                              ],
-                                            );
+                        SizedBox(
+                          height: 45,
+                          width: 180,
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(
+                                  const Color(0xFF047857)),
+                            ),
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                int selectedMonths = state.selectedDDCPeriod!.id!
+                                    - widget.cBpartner.currentFromPeriodID!.id! + 1;
+                                double ratePerMonth = widget.cBpartner.ratePerMonth!;
+                                double totalPrice = selectedMonths * ratePerMonth;
+                                if(selectedMonths >= 12){
+                                  totalPrice = totalPrice - ratePerMonth;
+                                }
+                                String selectedPeriod =
+                                addPayBloc.state.selectedDDCPeriod!.name!;
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext ctx) {
+                                    return AlertDialog(
+                                      title:
+                                      const Text("Draft New Payment ?"),
+                                      content: Text("Name : ${widget.cBpartner.name}\n"
+                                          "From : ${widget.cBpartner.toPeriodID!.identifier}"
+                                          " To $selectedPeriod\n"
+                                          "Total Months  : $selectedMonths\n"
+                                          "Total Amount : Rs. $totalPrice",style:
+                                      const TextStyle(fontWeight: FontWeight.bold , fontSize: 18),),
+                                      actions: [
+                                        TextButton(
+                                          child: const Text("Yes"),
+                                          onPressed: () {
+                                            finalDialogYesCallBack(ctx ,totalPrice );
                                           },
-                                        );
-                                      }
-                                    },
-                                    child: const Text(
-                                      'PAY !',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
+                                        ),
+                                        TextButton(
+                                          child: const Text("No"),
+                                          onPressed: () {
+                                            Navigator.of(ctx).pop();
+                                          },
+                                        )
+                                      ],
+                                    );
+                                  },
                                 );
                               }
-                            }),
+                            },
+                            child: const Text(
+                              'PAY !',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
 
                       ],
                     ),

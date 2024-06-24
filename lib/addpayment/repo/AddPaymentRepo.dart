@@ -17,7 +17,7 @@ class AddPaymentRepo{
   }
 
   Future<CPayment> postPayment({required int c_bpartner_id , required int fromPeriodId , required int toPeriodId
-  ,required int payAmt}) async{
+  ,required double payAmt}) async{
     CPayment toPost = CPayment(<String,dynamic>{});
     CBPartnerID cbId = CBPartnerID();
     cbId.id = c_bpartner_id;
