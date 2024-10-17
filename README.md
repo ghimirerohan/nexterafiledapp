@@ -1,16 +1,15 @@
-# next_era_collector
+# Next Era Collector Mobile App
 
-A new Flutter project.
+Mobile App For Collectors of Next Era 
 
-## Getting Started
+## Short Intro
 
-This project is a starting point for a Flutter application.
+This mobile app is the inranetwork designated platform for collectors of Next Era Energy to collect and draft payments
+ from customers as service tax for nextera services.
+- Scan QR -> Get Infos About Customer (Due Amount , Last Paid Period , Monthly Rate)
+- Post New QR -> Create New Customers
+- Update Old QR -> Update If Old QR Damaged Or Owner Changed
+- Dashboard -> View Todays's Summary And Acces To Other Menus
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## As Described The Mobile App Is Very Minimal In Design And Preety Much Self Explainatorty 
+## For Functional Use
