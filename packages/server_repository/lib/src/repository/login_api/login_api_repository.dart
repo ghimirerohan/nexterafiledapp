@@ -9,9 +9,9 @@ class LoginApiRepository implements LoginRepository{
   final BaseApiServices _apiServices = NetworkApiService() ;
 
   @override
-  Future<bool> login ({required String username, required String password,
-    required int clientId, required int roleId, required String lang}) async{
-   return await _apiServices.authenticate(username: username, password: password, clientId: clientId, roleId: roleId, lang: lang);
+  Future<bool> login({required String username, required String password}) async{
+   return await _apiServices.authenticate(username: username, password: password
+       );
   }
 
 }

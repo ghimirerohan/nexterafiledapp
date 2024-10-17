@@ -4,6 +4,7 @@ class MUser extends ModelBase {
   String? uid;
   String? name;
   bool? isDataCollector;
+  bool? isAdmin;
   String? modelName;
 
   MUser(json) : super(json) {
@@ -11,6 +12,7 @@ class MUser extends ModelBase {
     uid = json['uid'];
     name = json['Name'];
     isDataCollector = json['isDataCollector'];
+    isAdmin = json['ne_IsAdmin'];
     modelName = json['model-name'];
   }
 
@@ -19,6 +21,7 @@ class MUser extends ModelBase {
     uid = json['uid'];
     name = json['Name'];
     isDataCollector = json['isDataCollector'];
+    isAdmin = json['ne_IsAdmin'];
     modelName = json['model-name'];
     return this;
   }
@@ -37,6 +40,7 @@ class MUser extends ModelBase {
     data['uid'] = this.uid;
     data['Name'] = this.name;
     data['isDataCollector'] = this.isDataCollector;
+    data['ne_IsAdmin'] = isAdmin;
     data['model-name'] = this.modelName;
     return data;
   }

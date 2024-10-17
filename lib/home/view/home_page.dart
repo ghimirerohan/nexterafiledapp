@@ -8,10 +8,13 @@ import 'package:next_era_collector/home/bloc/home_bloc/home_bloc.dart';
 import 'package:next_era_collector/home/bloc/home_bloc/home_events.dart';
 import 'package:next_era_collector/home/bloc/home_bloc/home_states.dart';
 import 'package:next_era_collector/login/view/login_page.dart';
+import 'package:next_era_collector/map/view/NextEraMapScreen.dart';
 import 'package:next_era_collector/res/widgets/OverlayLoading.dart';
+import 'package:next_era_collector/toledata/view/toledata_screen.dart';
 
 
 import '../../../authentication/bloc/auth_bloc.dart';
+import '../../addnewtole/view/addnewtole_screen.dart';
 import '../../addpayment/view/addpayment_screen.dart';
 import '../../res/utils/OpenQRScanner.dart';
 import '../../res/widgets/MsgDialog.dart';
@@ -36,7 +39,9 @@ class _HomePageState extends State<HomePage> {
   bool isQRDataValid(String data) {
     if (data.contains("https://www.google.com/maps/place/") ||
         data.contains("https://nexteraportal.com/customer") ||
-        data.contains("https://nexteraportal.com/location")) {
+        data.contains("https://nexteraportal.com/location")||
+        data.contains("https://nexteraportal.com/tole/?id="))
+    {
       return true;
     } else {
       return false;
@@ -106,6 +111,67 @@ class _HomePageState extends State<HomePage> {
     final homeBloc = context.read<HomeBloc>();
     return BlocListener<HomeBloc, HomeState>(
       listener: (BuildContext context, HomeState state) async {
+        if(state.optionBeforeDirectPay){
+          showDialog<void>(
+            context: context,
+            builder: (_) => Center(
+              child: Container(
+                width: 333,
+                height: 333,
+                child: Padding(
+                  padding: const EdgeInsets.all(9.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                          onPressed: () {
+                            homeBloc.add(OpenCustListAfterDirectPayScanned());
+                          },
+                          child: const Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text("Open This Tole's Data"),
+                              Icon(Icons.location_city)
+                            ],
+                          )),
+                      const SizedBox(
+                        height: 6,
+                      ),
+                      ElevatedButton(
+                          onPressed: () {
+                            homeBloc.add(OpenCustListAfterDirectPayScanned());
+                          },
+                          child: const Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text("Open This Location's List"),
+                              Icon(Icons.location_city)
+                            ],
+                          )),
+                      const SizedBox(
+                        height: 6,
+                      ),
+                      ElevatedButton(
+                          onPressed: () async {
+                            homeBloc.add(OpenDirectAfterDirectPayScanned());
+                          },
+                          child: const Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text("Open Direct Payment"),
+                              Icon(Icons.person)
+                            ],
+                          ))
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
         if (state.isQRValid) {
           if (state.isDirectPayment) {
             if (state.custModel == null) {
@@ -118,8 +184,16 @@ class _HomePageState extends State<HomePage> {
                   .push(AddPaymentScreen.route(cBpartner: state.custModel!));
             }
           } else {
-            Navigator.of(context).push(
-                CustListScreen.route(state.qrData.replaceAll("%2B", "+")));
+            if(state.qrData.contains('Tole')){
+              String data = state.qrData.substring(state.qrData.lastIndexOf(":")+1);
+              Navigator.of(context).push(
+                  ToleDataScreen.route(toleID: int.parse(data)));
+
+            }else{
+              Navigator.of(context).push(
+                  CustListScreen.route(state.qrData.replaceAll("%2B", "+")));
+            }
+
           }
         }
         if (state.logOutRequested) {
@@ -134,6 +208,10 @@ class _HomePageState extends State<HomePage> {
         } else if (state.isAddLocationOkay) {
           Navigator.of(context).push(AddLocationScreen.route(
               ne_qrlocationadd_id: int.parse(state.locationAddMsg)));
+        }
+        else if (state.isAddToleOkay) {
+          Navigator.of(context).push(AddNewToleScreen.route(
+              ne_qrtoleadd_id: int.parse(state.locationAddMsg)));
         }
       },
       child: PopScope(
@@ -163,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           topArea(authBloc.userName, context),
                           const SizedBox(
-                            height: 57,
+                            height: 33,
                           ),
                           BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
                             return getMidScreen(state.selection, context);
@@ -282,9 +360,198 @@ Container getMidScreen(int index, BuildContext ctx) {
 }
 
 Container getPersonContainer(BuildContext ctx) {
+
+  final TextEditingController _locationCode = TextEditingController();
+  final TextEditingController _customerQRCode = TextEditingController();
+
+
+  _openLocationFromCode(){
+    ctx.read<HomeBloc>().add(
+        LocationOpenFromCode(
+            locationCode:
+            _locationCode.text.toUpperCase()));
+  }
+
+  _openCustomerFromCode(){
+    ctx.read<HomeBloc>().add(
+        CustomerOpenFromCode(
+            customerQRCode:
+            int.parse(_locationCode.text)));
+  }
+
+  _openLocationSearchDialog(){
+    showDialog(
+      context: ctx,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title:
+          const Text("Enter Location Code"),
+          content: Text("GPCode"
+
+            ,style:
+            const TextStyle(fontWeight: FontWeight.bold , fontSize: 18),),
+          actions: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextField(
+                  controller: _locationCode,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 17),
+                  decoration: InputDecoration(
+                      disabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xFF047857)),
+                          borderRadius: BorderRadius.circular(9)),
+                      focusColor: Colors.white,
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xFF047857)),
+                          borderRadius: BorderRadius.circular(9)),
+                      border: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.red),
+                          borderRadius: BorderRadius.circular(9)),
+                      contentPadding: const EdgeInsets.all(20),
+                      hintText: "Location Code",
+                      labelText: "Enter Code",
+                      suffixIcon: const Icon(Icons.business),
+                      labelStyle: const TextStyle(
+                          color: Color(0xFF047857),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600),
+                      hintStyle: const TextStyle(
+                          color: Color(0xFF047857),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300),
+                      suffixIconColor: const Color(0xFF047857)),
+                ),
+                SizedBox(height: 18,),
+                ElevatedButton(
+                    onPressed: () {
+                      if(_locationCode.text == "" || _locationCode.text == "0"){
+                        Navigator.of(ctx).pop();
+                        showDialog<void>(
+                            context: ctx,
+                            builder: (_) => MsgDialog(msg: "Location Code Cannot Be Empty"));
+                      }
+                      else{
+                        Navigator.of(ctx).pop();
+                        _openLocationFromCode();
+
+                      }
+                    },
+                    child: const Row(
+                      mainAxisAlignment:
+                      MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text("Search Location"),
+                        Icon(Icons.location_disabled_outlined)
+                      ],
+                    )),
+
+              ],
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  _openCustomerCodeSearchDialog(){
+    showDialog(
+      context: ctx,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title:
+          const Text("Enter Customer Code"),
+          content: Text("Qr Code"
+
+            ,style:
+            const TextStyle(fontWeight: FontWeight.bold , fontSize: 18),),
+          actions: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextField(
+                  keyboardType: TextInputType.number,
+                  controller: _customerQRCode,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 17),
+                  decoration: InputDecoration(
+                      disabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xFF047857)),
+                          borderRadius: BorderRadius.circular(9)),
+                      focusColor: Colors.white,
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xFF047857)),
+                          borderRadius: BorderRadius.circular(9)),
+                      border: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.red),
+                          borderRadius: BorderRadius.circular(9)),
+                      contentPadding: const EdgeInsets.all(20),
+                      hintText: "Customer Code",
+                      labelText: "QR Code",
+                      suffixIcon: const Icon(Icons.business),
+                      labelStyle: const TextStyle(
+                          color: Color(0xFF047857),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600),
+                      hintStyle: const TextStyle(
+                          color: Color(0xFF047857),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300),
+                      suffixIconColor: const Color(0xFF047857)),
+                ),
+                SizedBox(height: 18,),
+                ElevatedButton(
+                    onPressed: () {
+                      if(_customerQRCode.text == "" ||
+                          _customerQRCode.text == "0" ||
+                          _customerQRCode.text.length < 7
+                      ){
+                        Navigator.of(ctx).pop();
+                        showDialog<void>(
+                            context: ctx,
+                            builder: (_) => MsgDialog(msg: "Customer Code Empty/Invalid"));
+                      }
+                      else{
+                        Navigator.of(ctx).pop();
+                        _openCustomerFromCode();
+
+                      }
+                    },
+                    child: const Row(
+                      mainAxisAlignment:
+                      MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text("Search Location"),
+                        Icon(Icons.location_disabled_outlined)
+                      ],
+                    )),
+
+              ],
+            )
+          ],
+        );
+      },
+    );
+  }
+
+
   bool addNewLocationQRValid(String value) {
     if (value != null) {
       if (value.contains("https://nexteraportal.com/location")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool addNewToleQRValid(String value) {
+    if (value != null) {
+      if (value.contains("https://nexteraportal.com/tole")) {
         return true;
       }
     }
@@ -306,6 +573,21 @@ Container getPersonContainer(BuildContext ctx) {
     }
   }
 
+  _onScanQRForToleAdd() async {
+    String? data = await openQRScanner();
+    if (data != null) {
+      if (!addNewToleQRValid(data)) {
+        showDialog<void>(
+          context: ctx,
+          builder: (_) => const QRErrorDialog(),
+        );
+      } else {
+        String dataFinal = data.substring(data.lastIndexOf('=') + 1);
+        ctx.read<HomeBloc>().add(ToleAddQRScannedEvent(id: dataFinal));
+      }
+    }
+  }
+
   return Container(
     color: Colors.transparent,
     child: Center(
@@ -313,40 +595,33 @@ Container getPersonContainer(BuildContext ctx) {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Text(
-            'ग्राहक सम्बन्धी',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 51,
-            ),
-          ),
-          const SizedBox(
-            height: 45,
-          ),
+
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.black.withOpacity(.51),
-                shadowColor: Colors.redAccent.withOpacity(.55),
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0)),
-                minimumSize: const Size(333, 69),
-                //////// HERE
-                padding: const EdgeInsets.all(9)),
-            onPressed: () {},
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.black.withOpacity(.51),
+              shadowColor: Colors.redAccent.withOpacity(.55),
+              elevation: 3,
+              padding: const EdgeInsets.all(9),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0)),
+              minimumSize: const Size(333, 69), //////// HERE
+            ),
+            onPressed: () {
+              _onScanQRForToleAdd();
+            },
             child: const Column(
               children: [
-                Icon(Icons.person_search_sharp),
+                Icon(Icons.reduce_capacity),
                 Text(
-                  'CUSTOMER\'S DETAILS \n            ग्राहकको विवरण',
+                  'TOLE दर्ता गर्नुहोस्',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
               ],
             ),
-          ), //Customer Details
+          ), //Tole Add
           const SizedBox(
-            height: 45,
+            height: 33,
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -366,12 +641,200 @@ Container getPersonContainer(BuildContext ctx) {
               children: [
                 Icon(Icons.location_on_rounded),
                 Text(
-                  'ADD LOCATION \n     दर्ता गर्नुहोस्',
+                  'LOCATION दर्ता गर्नुहोस्',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
               ],
             ),
-          ), //Customer Add
+          ), //Location Add
+          const SizedBox(
+            height: 33,
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.black.withOpacity(.51),
+                shadowColor: Colors.redAccent.withOpacity(.55),
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0)),
+                minimumSize: const Size(333, 69),
+                //////// HERE
+                padding: const EdgeInsets.all(9)),
+            onPressed: () {
+              _openLocationSearchDialog();
+            },
+            child: const Column(
+              children: [
+                Icon(Icons.location_searching),
+                Text(
+                  'लोकेशन खोजि',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+          ), //Search Location BY GPCode
+
+        ],
+      ),
+    ),
+  );
+}
+
+Container getPaymentContainer(BuildContext ctx) {
+
+  final TextEditingController _customerQRCode = TextEditingController();
+
+  _openCustomerFromCode(){
+    ctx.read<HomeBloc>().add(
+        CustomerOpenFromCode(
+            customerQRCode:
+            int.parse(_customerQRCode.text)));
+  }
+
+  _openCustomerCodeSearchDialog(){
+    showDialog(
+      context: ctx,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title:
+          const Text("Enter Customer Code"),
+          content: Text("Qr Code"
+            ,style:
+            const TextStyle(fontWeight: FontWeight.bold , fontSize: 18),),
+          actions: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextField(
+                  keyboardType: TextInputType.number,
+                  controller: _customerQRCode,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 17),
+                  decoration: InputDecoration(
+                      disabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xFF047857)),
+                          borderRadius: BorderRadius.circular(9)),
+                      focusColor: Colors.white,
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xFF047857)),
+                          borderRadius: BorderRadius.circular(9)),
+                      border: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.red),
+                          borderRadius: BorderRadius.circular(9)),
+                      contentPadding: const EdgeInsets.all(20),
+                      hintText: "Customer Code",
+                      labelText: "QR Code",
+                      suffixIcon: const Icon(Icons.payments),
+                      labelStyle: const TextStyle(
+                          color: Color(0xFF047857),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600),
+                      hintStyle: const TextStyle(
+                          color: Color(0xFF047857),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300),
+                      suffixIconColor: const Color(0xFF047857)),
+                ),
+                SizedBox(height: 18,),
+                ElevatedButton(
+                    onPressed: () {
+                      if(_customerQRCode.text == "" ||
+                          _customerQRCode.text == "0" ||
+                          _customerQRCode.text.length < 7
+                      ){
+                        Navigator.of(ctx).pop();
+                        showDialog<void>(
+                            context: ctx,
+                            builder: (_) => MsgDialog(msg: "Customer Code Empty/Invalid"));
+                      }
+                      else{
+                        Navigator.of(ctx).pop();
+                        _openCustomerFromCode();
+
+                      }
+                    },
+                    child: const Row(
+                      mainAxisAlignment:
+                      MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text("Search Customer"),
+                        Icon(Icons.person)
+                      ],
+                    )),
+
+              ],
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  return Container(
+    color: Colors.transparent,
+    child: Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          const SizedBox(
+            height: 27,
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.black.withOpacity(.51),
+                shadowColor: Colors.redAccent.withOpacity(.55),
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0)),
+                minimumSize: const Size(333, 69),
+                //////// HERE
+                padding: const EdgeInsets.all(9)),
+            onPressed: () {
+              _openCustomerCodeSearchDialog();
+            },
+            child: const Column(
+              children: [
+                Icon(Icons.payments_outlined),
+                Text(
+                  'OPEN CUSTOMER WITH CODE \n         कोड द्वारा भुक्तानी खोल्ने',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+          ), //Payment Details
+          const SizedBox(
+            height: 45,
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.black.withOpacity(.51),
+              shadowColor: Colors.redAccent.withOpacity(.55),
+              elevation: 3,
+              padding: const EdgeInsets.all(9),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0)),
+              minimumSize: const Size(333, 69),
+            ),
+            onPressed: () {
+              Navigator.of(ctx)
+                  .push(Nexteramapscreen.route());
+            },
+            child: const Column(
+              children: [
+                Icon(Icons.map),
+                Text(
+                  'OPEN MAP \n       ',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+          ), //Add Payments
           const SizedBox(
             height: 45,
           ),
@@ -381,77 +844,7 @@ Container getPersonContainer(BuildContext ctx) {
   );
 }
 
-Container getPaymentContainer(BuildContext ctx) => Container(
-      color: Colors.transparent,
-      child: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const Text(
-              'भुक्तानी सम्बन्धी',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 51,
-              ),
-            ),
-            const SizedBox(
-              height: 45,
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.black.withOpacity(.51),
-                  shadowColor: Colors.redAccent.withOpacity(.55),
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0)),
-                  minimumSize: const Size(333, 69),
-                  //////// HERE
-                  padding: const EdgeInsets.all(9)),
-              onPressed: () {},
-              child: const Column(
-                children: [
-                  Icon(Icons.payments_outlined),
-                  Text(
-                    'PAYMENTS DETAILS \n         भुक्तानीको विवरण',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                  ),
-                ],
-              ),
-            ), //Payment Details
-            const SizedBox(
-              height: 45,
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.black.withOpacity(.51),
-                shadowColor: Colors.redAccent.withOpacity(.55),
-                elevation: 3,
-                padding: const EdgeInsets.all(9),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0)),
-                minimumSize: const Size(333, 69),
-              ),
-              onPressed: () {},
-              child: const Column(
-                children: [
-                  Icon(Icons.currency_rupee),
-                  Text(
-                    'NEW PAYMENT \n       नयाँ भुक्तानी',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                  ),
-                ],
-              ),
-            ), //Add Payments
-            const SizedBox(
-              height: 45,
-            ),
-          ],
-        ),
-      ),
-    );
+
 
 Card topArea(String name, BuildContext ctx) {
   final homeBloc = ctx.read<HomeBloc>();
@@ -535,10 +928,8 @@ Card topArea(String name, BuildContext ctx) {
                       ? const Center(
                           child: CircularProgressIndicator(),
                         )
-                      : Text(
-                          state.isDatacollector
-                              ? "TODAY  |  TOTAL"
-                              : "Today\'s Collection - आज जम्मा",
+                      : const Text(
+                      "Today\'s Data ",
                           style: const TextStyle(
                               color: Colors.white, fontSize: 24.0)),
                 ),
@@ -555,9 +946,7 @@ Card topArea(String name, BuildContext ctx) {
                   child: Padding(
                     padding: const EdgeInsets.all(5.0),
                     child: Text(
-                        state.isDatacollector
-                            ? state.todayTotalCustCreatedString
-                            : "Rs. ${state.totalCollected}",
+                        state.todayTotalCustCreatedString,
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 20.0,

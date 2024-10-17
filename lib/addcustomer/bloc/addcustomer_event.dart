@@ -17,6 +17,7 @@ class PostCustomerEvents implements AddCustomerEvent{
   final String? email;
   final String? taxID;
   final int ne_qrcustomeradd_id;
+  final String? businessNo;
   final BuildContext context;
 
   const PostCustomerEvents({
@@ -29,6 +30,7 @@ class PostCustomerEvents implements AddCustomerEvent{
     required this.billName,
     this.taxID,
     required this.ne_qrcustomeradd_id,
+    this.businessNo,
     required this.context
 });
 }

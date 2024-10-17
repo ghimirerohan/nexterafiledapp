@@ -14,8 +14,10 @@ class HomeRepository{
   final CreateCustomerApiRepository createCustomerApiRepository = CreateCustomerApiRepository();
    final CustomerApiRepository customerApiRepository = CustomerApiRepository();
    final QRLocationAdd_Api qrLocationAdd_Api = QRLocationAdd_Api();
+   final QRToleAdd_Api qrToleAdd_Api = QRToleAdd_Api();
    final QRCustomerAddApi qrCustomerAddApi = QRCustomerAddApi();
    final LocationApiRepository locationApiRepository = LocationApiRepository();
+   final ToleApiRepo toleApiRepo = ToleApiRepo();
    final ProcessApiRepository processApiRepository = ProcessApiRepository();
 
    Future<NEQrCustomerAdd> getQRCustomerData(int id) async{
@@ -28,6 +30,15 @@ class HomeRepository{
    Future<NEQrLocationAdd> getQRLocationData(int id) async{
      return  await qrLocationAdd_Api.getQRLocationAddData(id);
    }
+
+   Future<NEQRToleAdd> getQRToleData(int id) async{
+     return  await qrToleAdd_Api.getQRToleAddData(id);
+   }
+
+   Future<NETole> getToleFromID(int ID) async{
+     return await toleApiRepo.getToleByID(id: ID);
+   }
+
    Future<CBpartner?> getCustomerByValueToDirectPay(String value) async{
      ApiResponse<CBpartner?> response = await customerApiRepository.getCustomerFromValue(value);
      return response.data;

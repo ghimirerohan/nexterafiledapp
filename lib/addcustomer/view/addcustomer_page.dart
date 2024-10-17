@@ -157,6 +157,8 @@ class _AddCustBodyState extends State<AddCustBody> {
   final TextEditingController _housestory = TextEditingController();
 
   final TextEditingController _taxId = TextEditingController();
+  final TextEditingController _businessNo = TextEditingController();
+
   final TextEditingController _billNameCnt = TextEditingController();
 
   @override
@@ -188,6 +190,7 @@ class _AddCustBodyState extends State<AddCustBody> {
         c_location_id: widget.c_location_id,
         taxID: _taxId.text == "" ? null : _taxId.text,
         ne_qrcustomeradd_id: widget.ne_qrcustomeradd_id,
+        businessNo: _businessNo.text == "" ? null : _businessNo.text,
         context: context));
   }
 
@@ -198,6 +201,7 @@ class _AddCustBodyState extends State<AddCustBody> {
   final _emailFocusNode = FocusNode();
   final _houseStorNoFocusNode = FocusNode();
   final _panNoFocusNode = FocusNode();
+  final _bnusinessNoFocusNode = FocusNode();
 
   _unFocusAllFieldAfterSubitButtonPressed() {
     _nameFocusNode.unfocus();
@@ -207,6 +211,7 @@ class _AddCustBodyState extends State<AddCustBody> {
     _houseStorNoFocusNode.unfocus();
     _panNoFocusNode.unfocus();
     _billName.unfocus();
+    _bnusinessNoFocusNode.unfocus();
   }
 
   @override
@@ -514,6 +519,21 @@ class _AddCustBodyState extends State<AddCustBody> {
                         const SizedBox(
                           height: 20,
                         ),
+                        InputField(
+                          editingController: _businessNo,
+                          labelText: "Business NO.",
+                          hintText: "Business No",
+                          icon: const Icon(
+                            Icons.business_center,
+                            size: 25,
+                          ),
+                          inputType: TextInputType.number,
+                          focusNode: _bnusinessNoFocusNode,
+                        ),
+                        //BusinessNo
+                        const SizedBox(
+                          height: 20,
+                        ),
                         Row(
                           children: [
                             Checkbox(
@@ -599,7 +619,11 @@ class _AddCustBodyState extends State<AddCustBody> {
                                         return MsgDialog(
                                             msg: "Card Picture Needed !");
                                       });
-                                } else {
+                                } else if(context
+                                    .read<AddCustomerBloc>()
+                                    .state
+                                    .selectedDDCBPGroup
+                                    !.isStoryBased!){
                                   _formKey.currentState!.save();
                                   String groupCBPToShow = addCustBloc
                                       .state.selectedDDCBPGroup!.englishName!;
@@ -630,6 +654,50 @@ class _AddCustBodyState extends State<AddCustBody> {
                                       );
                                     },
                                   );
+
+                                }
+                                else if(
+                                (_taxId.text != "" || _businessNo.text != "")
+                                ){
+                                  _formKey.currentState!.save();
+                                  String groupCBPToShow = addCustBloc
+                                      .state.selectedDDCBPGroup!.englishName!;
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext ctx) {
+                                      return AlertDialog(
+                                        title: const Text(
+                                            "Post New Customer ?"),
+                                        content:
+                                        Text("Name : ${_name.text}\n"
+                                            "Group : $groupCBPToShow\n"
+                                            "Phone : ${_mobile.text}"),
+                                        actions: [
+                                          TextButton(
+                                            child: const Text("Yes"),
+                                            onPressed: () {
+                                              finalDialogYesCallBack(ctx);
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: const Text("No"),
+                                            onPressed: () {
+                                              Navigator.of(ctx).pop();
+                                            },
+                                          )
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                                else{
+
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext ctx) {
+                                        return MsgDialog(
+                                            msg: "Either PAN No. or Business No is needed");
+                                      });
                                 }
                               }
                             },

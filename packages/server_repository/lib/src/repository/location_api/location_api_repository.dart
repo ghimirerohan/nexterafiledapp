@@ -19,7 +19,7 @@ class LocationApiRepository implements LocationRepository{
     FilterBuilder filter = FilterBuilder()
         .addFilter("Address5", Operators.eq, gpcode);
     ApiResponse<List<CLocation>> queryResult = await _apiServices.getDataApiResponse(filter:  filter,
-        select: ['Address5','City']);
+        select: ['Address5','City','Price','noOfCustomers']);
     if(queryResult.data!.isEmpty){
       throw("No Location Code In DataBase");
     }

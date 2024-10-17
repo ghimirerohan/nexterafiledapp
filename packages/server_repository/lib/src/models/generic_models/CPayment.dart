@@ -8,6 +8,7 @@ class CPayment extends ModelBase{
   double? payAmt;
   CBPartnerID? cBPartnerID;
   String? dateTrx;
+  bool? isDiscountEnabled;
   CBPartnerID? toPeriodID;
   CBPartnerID? salesRepID;
   CBPartnerID? fromPeriodID;
@@ -30,6 +31,7 @@ class CPayment extends ModelBase{
         ? CBPartnerID.fromJson(json['C_BPartner_ID'])
         : null;
     dateTrx = json['DateTrx'];
+    isDiscountEnabled = json['ne_discount_saved'];
     toPeriodID = json['To_Period_ID'] != null
         ? CBPartnerID.fromJson(json['To_Period_ID'])
         : null;
@@ -54,6 +56,7 @@ class CPayment extends ModelBase{
         ? CBPartnerID.fromJson(json['C_BPartner_ID'])
         : null;
     dateTrx = json['DateTrx'];
+    isDiscountEnabled = json['ne_discount_saved'];
     toPeriodID = json['To_Period_ID'] != null
         ? CBPartnerID.fromJson(json['To_Period_ID'])
         : null;
@@ -73,6 +76,7 @@ class CPayment extends ModelBase{
     data['id'] = id;
     data['uid'] = uid;
     data['PayAmt'] = payAmt;
+    data['ne_discount_saved'] = isDiscountEnabled  ;
     if (cBPartnerID != null) {
       data['C_BPartner_ID'] = cBPartnerID!.toJson();
     }

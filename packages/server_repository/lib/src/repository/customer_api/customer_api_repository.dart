@@ -15,8 +15,8 @@ class CustomerApiRepository implements CustomerRepository{
         .addFilter("C_Location_ID", Operators.eq, c_location_id);
     ApiResponse<List<CBpartner>>? queryResult = await _networkApiService.
     getDataApiResponse( filter: filter,
-        select: ['Name' , 'Value', 'Name2','C_Location_ID','C_BP_Group_ID','ward','Price' ,
-          'DocStatus' , 'To_Period_ID' ,'C_Period_ID' ]);
+        select: ['Name' , 'Value', 'Name2','C_Location_ID','C_BP_Group_ID','ward','Price' ,'house_storey_number',
+          'DocStatus' , 'To_Period_ID' ,'C_Period_ID', 'TaxID' , 'ne_businessno' ]);
     return queryResult;
   }
 
@@ -30,6 +30,12 @@ class CustomerApiRepository implements CustomerRepository{
     ApiResponse<CBpartner> reponse = await _networkApiService.getRecordApiResponse(id);
     return reponse.data;
   }
+
+  Future<CBpartner?> putCustomer(CBpartner model) async{
+    ApiResponse<CBpartner?> reponse = await _networkApiService.getPutApiResponse(model);
+    return reponse.data;
+  }
+
 
   @override
   Future<ApiResponse<CBpartner?>> getCustomerFromValue(String value) async{

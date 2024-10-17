@@ -42,6 +42,18 @@ class CPeriodApiRepository implements CPeriodRepository{
         select: ['Name']);
     return queryResult;
   }
+
+  Future<ApiResponse<List<CPeriod>>> getAllInitialsPeriods() async{
+    FilterBuilder filterBuilder = FilterBuilder().
+    addFilter("AD_Client_ID", Operators.eq, 1000000)
+        .and().addFilter("C_Period_ID", Operators.ge, 1000000);
+
+    ApiResponse<List<CPeriod>> queryResult = await _apiServices.
+    getDataApiResponse(
+        filter: filterBuilder,
+        select: ['Name']);
+    return queryResult;
+  }
   
   
 }

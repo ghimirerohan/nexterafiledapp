@@ -284,49 +284,75 @@ class CustomerListing extends StatelessWidget {
 
     final custlistBloc = context.read<CustListBloc>().state;
     final CPeriod? currentPeriod = custlistBloc.currenPeriod;
+    final String ownerName = custlistBloc.c_location?.ownerName ?? "No Name Taken";
+    final int noOfCustomers = custlistBloc.response.data?.length ?? 0;
+    final int totalPricePerMonthOfBuilding = custlistBloc.c_location?.ratePerMonth?.toInt() ?? 0;
+
 
     return Expanded(
       child: ListView.builder(
-          itemCount: custlistBloc.response.data!.length,
+          itemCount: custlistBloc.response.data!.length + 1,
           itemBuilder: (context, index) {
-            final CBpartner customer = custlistBloc.response.data![index];
-            return Card(
-              color: getColorForCard(currentPeriod, customer),
-              elevation: 5,
-              shadowColor: Colors.grey,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              margin: const EdgeInsets.only(
-                  left: 20, right: 20, top: 10, bottom: 3),
-              child: ListTile(
-                  onTap: () {
-                    if(custlistBloc.isOnlyDataCollector){
-                      showDialog<void>(
-                        context: context,
-                        builder: (_) =>  MsgDialog(msg: "Data Collector No Access"),
-                      );
-                    }else{
+            if(index == 0){
+              return Text(
+                "\n       Owner Name :  $ownerName"
+                  "\n       Number Of Customers :  $noOfCustomers"
+                "\n       Total Price/Month :  Rs.$totalPricePerMonthOfBuilding",
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    decoration: TextDecoration.none,
+                    color: Colors.black),
+              );
+            }
+            else{
+              index = index - 1;
+              final String ownerOrNot = custlistBloc.response.data![index]!.housestoreynumber! > 0 ? "(OWNER) " : "";
+              final CBpartner customer = custlistBloc.response.data![index];
+              return Card(
+                color: getColorForCard(currentPeriod, customer),
+                elevation: 5,
+                shadowColor: Colors.grey,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                margin: const EdgeInsets.only(
+                    left: 20, right: 20, top: 10, bottom: 3),
+                child: ListTile(
+                    onTap: () {
+                      // if(custlistBloc.isOnlyDataCollector){
+                      //   showDialog<void>(
+                      //     context: context,
+                      //     builder: (_) =>  MsgDialog(msg: "Data Collector No Access"),
+                      //   );
+                      // }else{
+                      //   context
+                      //       .read<CustListBloc>()
+                      //       .add(OpenPaymentEvent(cBpartner: customer));
+                      // }
+
                       context
                           .read<CustListBloc>()
                           .add(OpenPaymentEvent(cBpartner: customer));
-                    }
-                  },
-                  title: Text(
-                    customer.name ?? "No name",
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        decoration: TextDecoration.none,
-                        color: Colors.black),
-                  ),
-                  subtitle: Text(
-                      "${customer.phone ?? "No Phone"} - ${customer.cBPGroupID?.identifier ?? "No Group"}",
+                    },
+                    title: Text(
+                      ownerOrNot +
+                          (customer.name ?? "No name"),
                       style: const TextStyle(
-                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                           decoration: TextDecoration.none,
-                          color: Colors.black)),
-                  trailing: const Icon(Icons.arrow_forward_ios)),
-            );
+                          color: Colors.black),
+                    ),
+                    subtitle: Text(
+                        "${customer.phone ?? "No Phone"} - ${customer.cBPGroupID?.identifier ?? "No Group"}",
+                        style: const TextStyle(
+                            fontSize: 15,
+                            decoration: TextDecoration.none,
+                            color: Colors.black)),
+                    trailing: const Icon(Icons.arrow_forward_ios)),
+              );
+            }
+
           }),
     );
     ;

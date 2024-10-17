@@ -54,6 +54,7 @@ class AddCustomerBloc extends Bloc<AddCustomerEvent, AddCustomerState> {
           email: event.email,
           housestorynumber: event.housestory,
           taxId: event.taxID,
+          businessNo: event.businessNo,
           hasCard: state.hasCard,
         cardBase64: state.cardBase64
       );

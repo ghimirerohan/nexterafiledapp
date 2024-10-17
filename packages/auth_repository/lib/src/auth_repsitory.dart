@@ -34,7 +34,7 @@ class AuthenticationRepository {
         (userId != null && userId != 'null'
             && userId != '' )
     ){
-      await IdempiereClient().setRestAuthOfUser(int.parse(userId), restAuthToken, 1000000, 1000003, "en-GB");
+      await IdempiereClient().setRestAuthOfUser(int.parse(userId), restAuthToken, 1000000, 1000000, "en-GB");
       _controller.add(AuthenticationStatus.authenticated );
       _username.add(userName as String);
     }else{
@@ -53,8 +53,7 @@ class AuthenticationRepository {
     required String username,
     required String password,
   }) async {
-    bool auth = await loginApiRepository.login(username: username, password: password,
-        clientId: 1000000, roleId: 1000003, lang: "en-GB");
+    bool auth = await loginApiRepository.login(username: username, password: password);
     if(auth){
       await storage.clearValue("username");
       await storage.clearValue("restauthtoken");
@@ -62,6 +61,8 @@ class AuthenticationRepository {
       ApiResponse<MUser>? user = await userApiRepository.getUser(username);
       if(user != null){
         await storage.setValue("isDataCollector", user!.data!.isDataCollector!.toString());
+        await storage.setValue("isAdmin", user!.data!.isAdmin?.toString() ?? "false");
+        // await storage.setValue("isAdmin", "false");
         await storage.setValue("username", username);
         await storage.setValue("userid", user!.data!.id!.toString());
         AuthTokenApiRepo auth = AuthTokenApiRepo();
@@ -89,6 +90,14 @@ class AuthenticationRepository {
 
   Future<bool> isUserADataCollectorFromCache() async{
     String? cachevalue = await storage.readValue("isDataCollector");
+    if(cachevalue != null){
+      return cachevalue == "true";
+    }
+    return false;
+  }
+
+  Future<bool> isUserAAdminFromCache() async{
+    String? cachevalue = await storage.readValue("isAdmin");
     if(cachevalue != null){
       return cachevalue == "true";
     }

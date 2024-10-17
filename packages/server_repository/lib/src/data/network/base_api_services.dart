@@ -13,6 +13,6 @@ abstract class BaseApiServices {
   Future<dynamic> getPutApiResponse(dynamic data);
 
   Future<bool> authenticate({required String username, required String password,
-    required int clientId, required int roleId, required String lang});
+  });
 
 }

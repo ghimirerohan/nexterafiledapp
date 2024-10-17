@@ -5,6 +5,8 @@ class CLocation extends ModelBase{
   String? gpcode;
   String? housecode;
   String? ownerName;
+  int? noOfCustomers;
+  double? ratePerMonth;
   String? modelName;
 
   CLocation(json):super(json){
@@ -13,6 +15,15 @@ class CLocation extends ModelBase{
   gpcode = json['Address5'];
   housecode = json['Address4'];
   ownerName = json['City'];
+  noOfCustomers = json['noOfCustomers'];
+  if(json['Price'] != null){
+    String priceString = json['Price'].toString();
+    if(priceString.contains(".")){
+      ratePerMonth = json['Price'];
+    }else{
+      ratePerMonth = double.parse(priceString);
+    }
+  }
   modelName = json['model-name'];
 }
   @override
@@ -22,6 +33,15 @@ class CLocation extends ModelBase{
     gpcode = json['Address5'];
     housecode = json['Address4'];
     ownerName = json['City'];
+    noOfCustomers = json['noOfCustomers'];
+    if(json['Price'] != null){
+      String priceString = json['Price'].toString();
+      if(priceString.contains(".")){
+        ratePerMonth = json['Price'];
+      }else{
+        ratePerMonth = double.parse(priceString);
+      }
+    }
     modelName = json['model-name'];
     return this;
   }
@@ -34,6 +54,8 @@ class CLocation extends ModelBase{
     data['Address5'] = gpcode;
     data['Address4'] = housecode;
     data['City'] = ownerName;
+    data['noOfCustomers'] =noOfCustomers ;
+    data['Price'] = ratePerMonth;
     data['model-name'] = modelName;
     return data;
   }

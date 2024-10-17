@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:idempiere_rest/idempiere_rest.dart';
 import 'package:server_repository/server_repository.dart';
+import 'package:server_repository/src/models/custom_models/NEQRToleAdd.dart';
 import 'package:server_repository/src/models/generic_models/CLocation.dart';
 
 import '../app_exceptions.dart';
@@ -27,6 +29,11 @@ class NetworkApiService<ModelBase> implements BaseApiServices {
               .getRecord<NEQrCustomerAdd>("/models/${NEQrCustomerAdd.model}", id, (json) => NEQrCustomerAdd(json))
               .timeout(const Duration(seconds: 20));
           return ApiResponse<NEQrCustomerAdd>.completed(response);
+        case NEQRToleAdd:
+          NEQRToleAdd? response = await IdempiereClient()
+              .getRecord<NEQRToleAdd>("/models/${NEQRToleAdd.model}", id, (json) => NEQRToleAdd(json))
+              .timeout(const Duration(seconds: 20));
+          return ApiResponse<NEQRToleAdd>.completed(response);
         case CLocation:
           CLocation? response = await IdempiereClient()
               .getRecord<CLocation>("/models/${CLocation.model}", id, (json) => CLocation(json))
@@ -37,6 +44,16 @@ class NetworkApiService<ModelBase> implements BaseApiServices {
               .getRecord<CBpartner>("/models/${CBpartner.model}", id, (json) => CBpartner(json))
               .timeout(const Duration(seconds: 20));
           return ApiResponse<CBpartner>.completed(response);
+        case NETole:
+          NETole? response = await IdempiereClient()
+              .getRecord<NETole>("/models/${NETole.model}", id, (json) => NETole(json))
+              .timeout(const Duration(seconds: 20));
+          return ApiResponse<NETole>.completed(response);
+        case NECreateTole:
+          NECreateTole? response = await IdempiereClient()
+              .getRecord<NECreateTole>("/models/${NECreateTole.model}", id, (json) => NECreateTole(json))
+              .timeout(const Duration(seconds: 20));
+          return ApiResponse<NECreateTole>.completed(response);
       }
     } on SocketException {
       throw NoInternetException('No Internet Connection');
@@ -126,6 +143,11 @@ class NetworkApiService<ModelBase> implements BaseApiServices {
           CLocation? response =await IdempiereClient().put<CLocation>("/models/${CLocation.model}", data)
               .timeout(const Duration(seconds: 20));
           return ApiResponse<CLocation>.completed(response);
+        case CBpartner:
+          print(jsonEncode(data.toJson()));
+          CBpartner? response =await IdempiereClient().put<CBpartner>("/models/${CBpartner.model}", data)
+              .timeout(const Duration(seconds: 20));
+          return ApiResponse<CBpartner?>.completed(response);
       }
     } on SocketException {
       throw NoInternetException('No Internet Connection');
@@ -164,6 +186,10 @@ class NetworkApiService<ModelBase> implements BaseApiServices {
           NECreateLocation? response =await IdempiereClient().post<NECreateLocation>("/models/${NECreateLocation.model}", data)
               .timeout(const Duration(seconds: 20));
           return ApiResponse<NECreateLocation>.completed(response);
+        case NECreateTole:
+          NECreateTole? response =await IdempiereClient().post<NECreateTole>("/models/${NECreateTole.model}", data)
+              .timeout(const Duration(seconds: 20));
+          return ApiResponse<NECreateTole>.completed(response);
       }
     } on SocketException {
       throw NoInternetException('No Internet Connection');
@@ -178,7 +204,7 @@ class NetworkApiService<ModelBase> implements BaseApiServices {
 
   @override
   Future<bool> authenticate({required String username, required String password,
-    required int clientId, required int roleId ,required String lang}) async{
+    }) async{
 
       try{
         LoginResponse login =

@@ -4,7 +4,7 @@ import 'package:server_repository/src/models/common_models/CBPGroupID.dart';
 import '../../../models.dart';
 import '../common_models/DocStatus.dart';
 
-class NECreateCustomer extends ModelBase{
+class NECreateCustomer extends ModelBase {
   String? uid;
   String? value;
   String? name;
@@ -19,9 +19,10 @@ class NECreateCustomer extends ModelBase{
   DocStatus? docStatus;
   NeQrcustomerAddID? neQrcustomerAddID;
   String? taxId;
+  String? businessNo;
   String? modelName;
 
-  NECreateCustomer(json) : super(json){
+  NECreateCustomer(json) : super(json) {
     id = json['id'];
     uid = json['uid'];
     value = json['Value'];
@@ -34,6 +35,7 @@ class NECreateCustomer extends ModelBase{
     phone = json['Phone'];
     eMail = json['EMail'];
     taxId = json['TaxID'];
+    businessNo = json['ne_businessno'];
     houseStoreyNumber = json['house_storey_number'];
     cBPGroupID = json['C_BP_Group_ID'] != null
         ? new CBPGroupID.fromJson(json['C_BP_Group_ID'])
@@ -63,6 +65,7 @@ class NECreateCustomer extends ModelBase{
     eMail = json['EMail'];
     taxId = json['TaxID'];
     billName = json['Name2'];
+    businessNo = json['ne_businessno'];
     houseStoreyNumber = json['house_storey_number'];
     cBPGroupID = json['C_BP_Group_ID'] != null
         ? new CBPGroupID.fromJson(json['C_BP_Group_ID'])
@@ -87,7 +90,8 @@ class NECreateCustomer extends ModelBase{
     data['Value'] = value;
     data['Name'] = name;
     data['HasCard'] = hasCard;
-    data['Name2'] = billName ;
+    data['Name2'] = billName;
+    data['ne_businessno'] = businessNo;
 
     if (cLocationID != null) {
       data['C_Location_ID'] = cLocationID!.toJson();
@@ -111,9 +115,6 @@ class NECreateCustomer extends ModelBase{
     data['model-name'] = modelName;
     return data;
   }
+
   static const String model = "ne_createcustomer";
-
-
 }
-
-

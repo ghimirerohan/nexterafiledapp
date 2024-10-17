@@ -49,7 +49,8 @@ class AddCustomerRepository{
   Future<NECreateCustomer> postCustomer({required int cBPGroupID ,required int cLocationID,
   required String name , required String phone ,
     required int ne_qrcustomeradd_id, required String billName,
-    double? housestorynumber,String? email ,String? taxId,  bool? hasCard , String? cardBase64}) async{
+    double? housestorynumber,String? email ,String? taxId, String? businessNo ,
+    bool? hasCard , String? cardBase64}) async{
     hasCard = hasCard ?? false;
     NECreateCustomer toPost = NECreateCustomer(<String,dynamic>{});
     toPost.name = name;
@@ -63,6 +64,9 @@ class AddCustomerRepository{
     toPost.houseStoreyNumber = housestorynumber;
     toPost.hasCard = hasCard;
     toPost.taxId = taxId;
+    if(businessNo != null){
+      toPost.businessNo = businessNo;
+    }
     toPost.neQrcustomerAddID = NeQrcustomerAddID(id: ne_qrcustomeradd_id);
     ApiResponse<NECreateCustomer> response = await _createCustomerApiRepository.postCreateCustomer(toPost);
     if(response.data == null){

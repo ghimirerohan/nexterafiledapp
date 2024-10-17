@@ -17,7 +17,9 @@ class HomeState extends Equatable {
     this.todayTotalCustCreatedString = "",
     this.isAddLocationOkay = false,
     this.isLoading = false,
-    this.isDatacollector = false
+    this.isDatacollector = false,
+    this.optionBeforeDirectPay = false,
+    this.isAddToleOkay = false
   });
 
   final int selection;
@@ -31,9 +33,11 @@ class HomeState extends Equatable {
   final bool newLocationAddInProgressOrTaken;
   final String locationAddMsg;
   final bool isAddLocationOkay;
+  final bool isAddToleOkay;
   final bool isLoading;
   final String todayTotalCustCreatedString;
   final bool isDatacollector;
+  final bool optionBeforeDirectPay;
 
   HomeState copyWith({
     int? selection,
@@ -47,9 +51,11 @@ class HomeState extends Equatable {
     bool? newLocationAddInProgressOrTaken,
     String? locationAddMsg,
     bool? isAddLocationOkay,
+    bool? isAddToleOkay,
     bool? isLoading,
     bool? isDatacollector,
-    String? todayTotalCustCreatedString
+    String? todayTotalCustCreatedString,
+    bool? optionBeforeDirectPay
   }) {
     return HomeState(
         selection: selection ?? this.selection,
@@ -64,9 +70,11 @@ class HomeState extends Equatable {
             this.newLocationAddInProgressOrTaken,
         locationAddMsg: locationAddMsg ?? this.locationAddMsg,
         isAddLocationOkay: isAddLocationOkay ?? this.isAddLocationOkay,
+        isAddToleOkay : isAddToleOkay ?? this.isAddToleOkay,
         isLoading : isLoading ?? this.isLoading,
       isDatacollector:  isDatacollector ?? this.isDatacollector,
-        todayTotalCustCreatedString : todayTotalCustCreatedString ?? this.todayTotalCustCreatedString
+        todayTotalCustCreatedString : todayTotalCustCreatedString ?? this.todayTotalCustCreatedString,
+        optionBeforeDirectPay : optionBeforeDirectPay ?? this.optionBeforeDirectPay
     );
   }
 
@@ -80,6 +88,8 @@ class HomeState extends Equatable {
         logOutRequested,
         totalCollected
         ,
+        isAddToleOkay,
+        optionBeforeDirectPay,
         isLoading,
         isDirectPayment,
         isTotalAmountLoading,

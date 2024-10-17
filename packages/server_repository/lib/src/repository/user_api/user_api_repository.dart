@@ -15,7 +15,10 @@ class UserApiRepository implements UserRepository {
   Future<ApiResponse<MUser>> getUser(String name)async{
     FilterBuilder filter = FilterBuilder()
     .addFilter("name", Operators.eq, name);
-    ApiResponse<List<MUser>> queryResult = await _apiServices.getDataApiResponse( filter: filter,select: ['Name' , 'isDataCollector']);
+    ApiResponse<List<MUser>> queryResult = await _apiServices.getDataApiResponse( filter: filter,select: ['Name'
+      , 'isDataCollector','ne_IsAdmin']);
+    // ApiResponse<List<MUser>> queryResult = await _apiServices.getDataApiResponse( filter: filter,select: ['Name'
+    //   , 'isDataCollector']);
     ApiResponse<MUser> returnUser = ApiResponse<MUser>.completed(queryResult.data?[0]);
     return returnUser;
 

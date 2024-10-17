@@ -9,8 +9,10 @@ class HomeEvent extends Equatable{
 }
 
 class FetchTotalCollectionAmount extends HomeEvent{
-
 }
+
+
+
 
 class ChangeSelectionEvent extends HomeEvent{
   final int selection;
@@ -33,6 +35,14 @@ class QRScannedEvent extends HomeEvent{
 
 class LogOutEvent extends HomeEvent{}
 
+class OpenToleDataAfterDirectPayScanned extends HomeEvent{
+
+}
+
+class OpenCustListAfterDirectPayScanned extends HomeEvent{}
+
+class OpenDirectAfterDirectPayScanned extends HomeEvent{}
+
 class LocationAddQRScannedEvent extends HomeEvent{
   final String id;
 
@@ -40,4 +50,25 @@ class LocationAddQRScannedEvent extends HomeEvent{
 
   @override
   List<Object> get props => [id];
+}
+
+class ToleAddQRScannedEvent extends HomeEvent{
+  final String id;
+
+  const ToleAddQRScannedEvent({required this.id});
+
+  @override
+  List<Object> get props => [id];
+}
+
+class LocationOpenFromCode extends HomeEvent{
+  final String locationCode;
+  LocationOpenFromCode({required this.locationCode});
+
+}
+
+class CustomerOpenFromCode extends HomeEvent{
+  final int customerQRCode;
+  CustomerOpenFromCode({required this.customerQRCode});
+
 }

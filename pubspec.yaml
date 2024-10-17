@@ -54,6 +54,8 @@ dependencies:
   permission_handler:
   form_validator:
   intl:
+  csv: ^6.0.0
+  google_maps_flutter: ^2.7.0
   auth_repository:
     path: packages/auth_repository
   server_repository:
@@ -63,6 +65,7 @@ dependencies:
   image_picker: ^1.1.2
   dropdown_textfield: ^1.1.0
   flutter_image_compress: ^2.3.0
+  location: ^7.0.0
 
 
 dev_dependencies:
@@ -90,6 +93,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
